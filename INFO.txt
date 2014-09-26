@@ -1,0 +1,7 @@
+INFO:
+
+Lade bara till alla filer just nu så att de finns ngnstans.. 
+Har inte gjort några git-ignore filer ännu.
+
+Man får helt enkelt själv ordna på något sätt och skapa projekten?
+

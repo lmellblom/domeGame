@@ -30,4 +30,5 @@
 # Our changes
 .DS_Store
 build/
-/CMakeFile
+CMakeFiles/
+.pdb

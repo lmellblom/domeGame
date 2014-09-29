@@ -2,7 +2,7 @@
 # All rights reserved.
 
 cmake_minimum_required(VERSION 2.8)
-SET(APP_NAME websocket_demo)
+SET(APP_NAME domeGame)
 
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")

@@ -35,3 +35,7 @@
 build/
 CMakeFiles/
 .pdb
+
+# the executable file 
+bin/domeGame
+

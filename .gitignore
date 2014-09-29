@@ -26,3 +26,8 @@
 *.exe
 *.out
 *.app
+
+# Our changes
+.DS_Store
+build/
+/CMakeFile

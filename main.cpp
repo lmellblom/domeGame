@@ -114,7 +114,7 @@ int main( int argc, char* argv[] )
     }
 
     // testing bullet
-    //btCollisionShape* fallShape = new btSphereShape(1);
+    btCollisionShape* fallShape = new btSphereShape(1);
 
 	// Main loop
 	gEngine->render();

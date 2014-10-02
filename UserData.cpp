@@ -44,12 +44,50 @@ void UserData::set(float theta, float phi, float r, float g, float b, float time
     mBlue = b;
 }
 
+float lastX;
+float lastY;
+bool firstRun = true;
+float speed = 0.03;
+
 void UserData::setCartesian2d(int x, int y, float timeStamp)
 {
-    float s = (static_cast<float>(x)/CANVAS_SIZE)*2.0f - 1.0f;
-    float t = (static_cast<float>(y)/CANVAS_SIZE)*2.0f - 1.0f;
-    
-    float r2 = s*s + t*t;
+	float s, t;
+
+	if (firstRun) {
+		s = (static_cast<float>(x) / CANVAS_SIZE)*2.0f - 1.0f;
+		t = (static_cast<float>(y) / CANVAS_SIZE)*2.0f - 1.0f;
+
+		lastX = static_cast<float>(x);
+		lastY = static_cast<float>(y);
+
+		firstRun = false;
+	}
+	else {
+		float diffX = static_cast<float>(x) - lastX;
+		float diffY = static_cast<float>(y) - lastY;
+
+		float length = sqrt(diffX*diffX + diffY*diffY);
+
+		float difference = speed / length;
+		
+		if (difference > 1.0) {
+			s = (static_cast<float>(x) / CANVAS_SIZE)*2.0f - 1.0f;
+			t = (static_cast<float>(y) / CANVAS_SIZE)*2.0f - 1.0f;
+		}
+		else {
+			float newX = lastX + (difference*diffX);
+			float newY = lastY +(difference*diffY);
+
+			s = (newX / CANVAS_SIZE)*2.0f - 1.0f;
+			t = (newY / CANVAS_SIZE)*2.0f - 1.0f;
+
+			lastX = newX;
+			lastY = newY;
+		}
+		
+	}
+	
+	float r2 = s*s + t*t;
     if( r2 <= 1.0f )
     {
         mPhi = sqrt(r2) * DEG90_TO_RAD;

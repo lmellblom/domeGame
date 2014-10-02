@@ -9,6 +9,8 @@ All rights reserved.
 #include "UserData.h"
 #include "Quad.h"
 
+#include <btBulletDynamicsCommon.h>
+
 #define MAX_WEB_USERS 256
 
 sgct::Engine * gEngine;
@@ -82,6 +84,7 @@ void webDecoder(const char * msg, size_t len)
 
 int main( int argc, char* argv[] )
 {
+    
 	// Allocate
 	gEngine = new sgct::Engine( argc, argv );
 
@@ -109,6 +112,9 @@ int main( int argc, char* argv[] )
         //webserver.start(9000);
         webserver.start(80);
     }
+
+    // testing bullet
+    //btCollisionShape* fallShape = new btSphereShape(1);
 
 	// Main loop
 	gEngine->render();

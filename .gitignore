@@ -22,6 +22,9 @@
 *.a
 *.lib
 
+#our change
+!/bullet/*.lib
+
 # Executables
 *.exe
 *.out

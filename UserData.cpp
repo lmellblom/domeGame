@@ -47,7 +47,7 @@ void UserData::set(float theta, float phi, float r, float g, float b, float time
 float lastX;
 float lastY;
 bool firstRun = true;
-float speed = 0.03;
+float speed = 3.0;
 
 void UserData::setCartesian2d(int x, int y, float timeStamp)
 {
@@ -76,7 +76,7 @@ void UserData::setCartesian2d(int x, int y, float timeStamp)
 		}
 		else {
 			float newX = lastX + (difference*diffX);
-			float newY = lastY +(difference*diffY);
+			float newY = lastY + (difference*diffY);
 
 			s = (newX / CANVAS_SIZE)*2.0f - 1.0f;
 			t = (newY / CANVAS_SIZE)*2.0f - 1.0f;

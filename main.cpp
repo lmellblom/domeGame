@@ -9,6 +9,8 @@ All rights reserved.
 #include "UserData.h"
 #include "Quad.h"
 
+#include <btBulletDynamicsCommon.h>
+
 #define MAX_WEB_USERS 256
 
 sgct::Engine * gEngine;
@@ -41,14 +43,10 @@ glm::mat4 MVP;
 GLint Matrix_Loc = -1;
 GLint Color_Loc = -1;
 GLint Avatar_Tex_Loc = -1;
-GLint Info_Tex_Loc = -1;
-GLint Info_Matrix_Loc = -1;
 
 size_t avatarTex;
-size_t infoTex;
 
 Quad avatar;
-Quad info;
 
 // tar emot data från html-sidan
 void webDecoder(const char * msg, size_t len)
@@ -79,13 +77,14 @@ void webDecoder(const char * msg, size_t len)
         color[1] /= 255.0f;
         color[2] /= 255.0f;
         webUsers[id].setColor(color[0], color[1], color[2]);
-        fprintf(stderr, "%s\n", "sätt färgen på figuren!!! ");
+        //fprintf(stderr, "%s\n", "sätt färgen på figuren!!! "); // debugsyfte
     }
 
 }
 
 int main( int argc, char* argv[] )
 {
+    
 	// Allocate
 	gEngine = new sgct::Engine( argc, argv );
 
@@ -114,6 +113,9 @@ int main( int argc, char* argv[] )
         webserver.start(80);
     }
 
+    // testing bullet
+    //btCollisionShape* fallShape = new btSphereShape(1);
+
 	// Main loop
 	gEngine->render();
 
@@ -127,11 +129,10 @@ int main( int argc, char* argv[] )
 void myInitFun()
 {
     avatar.create(0.8f, 0.8f);
-    //info.create(4.0f, 2.0f);
     
-    //sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
-	//sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-	//sgct::TextureManager::instance()->loadTexure(infoTex, "info", "info.png", true);
+    // load textures
+    sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
+	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
     sgct::TextureManager::instance()->loadTexure(avatarTex, "avatar", "avatar.png", true);
 
 	sgct::ShaderManager::instance()->addShaderProgram( "avatar",
@@ -144,17 +145,7 @@ void myInitFun()
     Color_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "FaceColor" );
     Avatar_Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "Tex" );
     
-    /*sgct::ShaderManager::instance()->addShaderProgram( "info",
-                                                      "info.vert",
-                                                      "info.frag" );*/
-    
-	//sgct::ShaderManager::instance()->bindShaderProgram( "info" );
-    
-	//Info_Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "info").getUniformLocation( "Tex" );
-    //Info_Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "info").getUniformLocation( "MVP" );
- 
 	sgct::ShaderManager::instance()->unBindShaderProgram();
-
 
 }
 
@@ -166,8 +157,7 @@ void myDrawFun()
     MVP = gEngine->getActiveModelViewProjectionMatrix();
     
     renderAvatars();
-    //renderConnectionInfo(); // this is for which site to connect to.. different ours so dont need know
-    
+
     //unbind shader program
     sgct::ShaderManager::instance()->unBindShaderProgram();
     
@@ -223,7 +213,7 @@ void myDecodeFun()
 void myCleanUpFun()
 {
 	avatar.clear();
-    //info.clear();
+
 }
 
 void keyCallback(int key, int action)
@@ -282,30 +272,3 @@ void renderAvatars()
     
 	avatar.unbind();
 }
-
-// använder inte denna nu, renderade ut information angående vilken sida man kunde connecta mot!
-/*
-void renderConnectionInfo()
-{
-    glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(infoTex) );
-    
-    glm::mat4 labelElevation = glm::rotate( glm::mat4(1.0f), 25.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-    glm::mat4 labelTrans = glm::translate( labelElevation, glm::vec3(0.0f, 0.0f, -5.0f));
-    
-    glm::mat4 infomat;
-    
-    sgct::ShaderManager::instance()->bindShaderProgram( "info" );
-    glUniform1i( Info_Tex_Loc, 0 );
-    
-    info.bind();
-    
-    for(float rot=0.0f; rot<360.0f; rot+=120.0f)
-    {
-        infomat = MVP * glm::rotate(glm::mat4(1.0f), rot, glm::vec3(0.0f, 1.0f, 0.0f)) * labelTrans;
-        
-        glUniformMatrix4fv(Info_Matrix_Loc, 1, GL_FALSE, &infomat[0][0]);
-        info.draw();
-    }
-    info.unbind();
-}
-*/ 

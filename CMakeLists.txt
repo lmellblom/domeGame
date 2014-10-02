@@ -7,7 +7,19 @@ SET(APP_NAME domeGame)
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
 
+#added--------
+if(MSVC)
+  set(BULLET_ROOT ${CMAKE_SOURCE_DIR}/bullet)
+endif(MSVC)
+
+# Find includes in corresponding build directories
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+# Instruct CMake to run moc automatically when needed.
+set(CMAKE_AUTOMOC ON)
+
+
 PROJECT(${APP_NAME})
+
 
 add_executable(${APP_NAME}
 	main.cpp
@@ -40,6 +52,12 @@ set(LIBS
 		${BULLET_SRC}
 )
 
+#---
+find_package(BULLET REQUIRED)
+include_directories(${BULLET_INCLUDE_DIR})
+#---
+
+
 #copy data
 #if( NOT SGCT_PLACE_TARGETS_IN_SOURCE_TREE )
 #	add_custom_command(TARGET ${APP_NAME}
@@ -62,6 +80,7 @@ find_library(SGCT_RELEASE_LIBRARY
 	NAMES sgct libsgct libsgct_cpp11 REQUIRED)
 find_library(SGCT_DEBUG_LIBRARY 
 	NAMES sgctd libsgctd libsgct_cpp11d REQUIRED)
+
 
 if( WIN32 )
 	find_path(SGCT_INCLUDE_DIRECTORY 
@@ -87,7 +106,7 @@ set(SGCT_LIBS
 
 find_package(OpenGL REQUIRED)
 
-include_directories(${SGCT_INCLUDE_DIRECTORY} ${LIBWEBSOCKETS_INCLUDE_DIRECTORY})
+include_directories(${SGCT_INCLUDE_DIRECTORY} ${LIBWEBSOCKETS_INCLUDE_DIRECTORY} ${BULLET_INCLUDE_DIRECTORY})
 
 if( MSVC )
 	set(LIBS
@@ -95,6 +114,9 @@ if( MSVC )
 		${OPENGL_LIBRARY}
 		ws2_32
 		${LIBWEBSOCKETS_LIBRARY}
+
+		${BULLET_LIBS} # added this
+
 	)
 elseif( WIN32 ) #MINGW or similar
 	set(LIBS
@@ -102,6 +124,8 @@ elseif( WIN32 ) #MINGW or similar
 		${OPENGL_LIBRARY}
 		ws2_32
 		${LIBWEBSOCKETS_LIBRARY}
+
+		${BULLET_LIBS} # added this
 	)
 elseif( APPLE )
 	find_library(COCOA_LIBRARY Cocoa REQUIRED)
@@ -115,6 +139,9 @@ elseif( APPLE )
 		${IOKIT_LIBRARY}
 		${COREVIDEO_LIBRARY}
 		${LIBWEBSOCKETS_LIBRARY}
+
+		${BULLET_LIBS} # added this
+
 	)
 else() #linux
 	find_library(X11_LIBRARY X11 REQUIRED)
@@ -128,6 +155,8 @@ else() #linux
 		${XRANDR_LIBRARY}
 		${XI_LIBRARY}
 		${LIBWEBSOCKETS_LIBRARY}
+
+		${BULLET_LIBS} # added this
 	)
 endif()
 
@@ -178,4 +207,8 @@ if( CMAKE_COMPILER_IS_GNUCXX )
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -s")
 endif()
 
-target_link_libraries(${APP_NAME} ${LIBS})
+# Linking Bullet. NOTE: For now, no debug libraries
+
+# -----
+
+target_link_libraries(${APP_NAME} ${LIBS} ${BULLET_DYNAMICS_LIBRARY} ${BULLET_COLLISION_LIBRARY} ${BULLET_MATH_LIBRARY}) # added ---

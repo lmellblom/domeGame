@@ -31,6 +31,10 @@
 			background-color:#000000;
 
 		}
+
+		.center{
+			text-align: center;
+		}
 		</style>
 
 		<!-- handles position, draw on canvas, communicate with server etc.-->
@@ -288,8 +292,6 @@
     		<h1>DomeGame</h1>
     		<p>Detta spel kräver sammarbete. Ni ska klara en uppgift tillsammans så klura ordentligt hur ni ska göra.</p>
 
-    		 <button type="button" class="btn btn-default btn-lg" data-toggle="collapse" data-target="#controller">Starta spelet</button>
-
     		<div>
     			<span id="conn_status">Tyvärr så är du inte uppkopplad mot servern för tillfället!</span>
     			<span id="messages"></span> 
@@ -303,13 +305,10 @@
 
 	</div>
 
-    <div class="container">
-
-    	<div id="controller" class="text-center collapse">
+    <div class="center container">
        		<canvas width="500" height="600" id="touch_canvas">
 				Canvas tag not supported!			
 			</canvas>
-		</div>
 	</div>
 
 

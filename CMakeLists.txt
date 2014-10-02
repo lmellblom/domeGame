@@ -26,6 +26,19 @@ set_target_properties(${APP_NAME} PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_DEBUG ${TARGET_PATH}
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${TARGET_PATH}
 )
+set(NAME_INCLUDE "default value" CACHE "FIescription")
+set(NAME_LIB "default value" CACHE "Bullet")
+
+include_directories(${BULLET_DIRECTORY})
+
+
+find_path(LIBWEBSOCKETS_INCLUDE_DIRECTORY
+		NAMES libwebsockets
+		REQUIRED)
+
+set(LIBS
+		${BULLET_SRC}
+)
 
 #copy data
 #if( NOT SGCT_PLACE_TARGETS_IN_SOURCE_TREE )

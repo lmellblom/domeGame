@@ -207,9 +207,7 @@ void myDecodeFun()
 void myCleanUpFun()
 {
 	avatar.clear();
-    if(myBox != NULL)
-        delete myBox;
-    //info.clear();
+
 }
 
 void keyCallback(int key, int action)

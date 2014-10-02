@@ -1,31 +1,49 @@
 <!DOCTYPE html>  
 <html>  
     <head>
+    	<meta charset="UTF-8">
 		<meta name="viewport" content="width=512" initial-scale="1.0" maximum-scale="1.0"> 
+		<!-- FONTS-->
+		<link href='http://fonts.googleapis.com/css?family=Josefin+Sans' rel='stylesheet' type='text/css'>
+		<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300' rel='stylesheet' type='text/css'>
+		<!-- Bootstrap -->
+		<!-- Latest compiled and minified CSS -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+		<!-- Optional theme -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+		<!-- our own css-->
+		<!--<link rel="stylesheet" href="http://localhost/style.css">-->
 		<style>
-			body
-			{
-				font-family:helvetica;
-				color:white;
-				font-size:10px;
-				background-color:#000000;
-			}
-			
-			canvas
-			{
-				border:0px solid #000000;
-				/*background-image:url('dome.jpg');*/
-				background-color:#000000;
-			}
-			
-			div
-			{
-				font-family:helvetica;
-				color:white;
-				font-size:10px;
-			}
+		body {
+			background-color: black;
+			font-family: Josefin Sans; 
+			font-size: 15px;
+			margin: center;
+		}
+
+		.jumbotron{
+			text-align: center;
+		}
+
+		canvas {
+			border:0px solid #fff; /*change back to black later, just to see where the canvas is*/
+			/*background-image:url('dome.jpg');*/
+			background-color:#000000;
+
+		}
+
+		.center{
+			text-align: center;
+		}
 		</style>
-		<script type="text/javascript">
+
+		<!-- handles position, draw on canvas, communicate with server etc.-->
+		<!--<script src="http://localhost/script.js"></script>-->
+		<script>
+		/*
+		Communicate with the server, handles the canvas, position etc. 
+		*/
+
 		var socket_di;
 		var canvas, inside, mouseIsDown, xPos, yPos, ctx = 0;
 		var clientID = 0;
@@ -45,7 +63,7 @@
 			ctx.drawImage(imageObj, 0, 0);
 		};
 		      
-		
+
 		function init()
 		{
 			canvas = document.getElementById("touch_canvas");
@@ -61,7 +79,7 @@
 			canvas.addEventListener("touchstart", touchDown, false);
 			canvas.addEventListener("touchmove", touchXY, true);
 			canvas.addEventListener("touchend", touchUp, false);
- 
+
 			document.body.addEventListener("mouseup", mouseUp, false);
 			document.body.addEventListener("touchcancel", touchUp, false);
 
@@ -74,32 +92,32 @@
 			color1 = "rgb(" + r + "," + g + "," + b + ")";				
 			color2 = "rgba(" + r + "," + g + "," + b + ",0.5)";
 		}
-		
+
 		function mouseUp()
 		{
 			mouseIsDown = 0;
 			mouseXY();
 		}
- 
+
 		function touchUp()
 		{
 			mouseIsDown = 0;
 			// no touch to track, so just show state
 			showPos();
 		}
- 
+
 		function mouseDown()
 		{
 			mouseIsDown = 1;
 			mouseXY();
 		}
- 
+
 		function touchDown()
 		{
 			mouseIsDown = 1;
 		    touchXY();
 		}
-		
+
 		function touchXY(e)
 		{
 			if (!e)
@@ -111,7 +129,7 @@
 			
 			parsePosition();
 		}
-		
+
 		function mouseXY(e)
 		{
 			if (!e)
@@ -122,7 +140,7 @@
 			
 			parsePosition();
 		}
-		
+
 		function parsePosition()
 		{
 			var x = 2.0*(xPos/500) - 1.0;
@@ -139,7 +157,7 @@
 
 			showPos();
 		}
-		
+
 		function showPos()
 		{	
 			ctx.clearRect(0,0, canvas.width, canvas.height);
@@ -168,7 +186,7 @@
 				}
 			}
 		}
-		
+
 		function get_appropriate_ws_url()
 		{
 			var pcol;
@@ -205,19 +223,19 @@
 			{
 				socket_di = new WebSocket(get_appropriate_ws_url(), "sgct");
 			}
-		
+
 			try
 			{
 				socket_di.onopen = function()
 				{
-					document.getElementById("conn_status").innerHTML= "Connected!";
+					document.getElementById("conn_status").innerHTML = "Connected";
 					connected = 1;
 					showPos(); //redraw
 				} 
 
 				socket_di.onclose = function()
 				{
-					document.getElementById("conn_status").innerHTML= "Disconnected!";
+					document.getElementById("conn_status").innerHTML= "Failed to connect";
 					connected = 0;
 					showPos(); //redraw
 					
@@ -241,6 +259,8 @@
 						// send information about what color we should have.
 						socket_di.send("rgb " + clientID + " " + r + " " + g + " " + b + "\n");
 
+						document.getElementById("colorCircle").style.fill = color1;
+
 
 					}
 				} 
@@ -250,18 +270,48 @@
 				document.getElementById("conn_status").innerHTML = "Error : " + exception;  
 			}
 		}
-		
+
 		//connect to server
 		connect();
-        </script>
-        </head>
-    <body onLoad="init();" style="text-align:center;">
-    	<h1>HALLOJ!</h1>
-		<div id="conn_status"></div>
-        <canvas width="500" height="600" id="touch_canvas">
-			Canvas tag not supported!
-		</canvas>
-		<div id="messages"></div> 
+
+
+	</script>
+
+
+
+    </head>
+
+    <body onLoad="init();">
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+		<!-- Latest compiled and minified JavaScript -->
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    	
+		<div class="jumbotron">
+    		<h1>DomeGame</h1>
+    		<p>Detta spel kräver sammarbete. Ni ska klara en uppgift tillsammans så klura ordentligt hur ni ska göra.</p>
+
+    		<div>
+    			<span id="conn_status">Tyvärr så är du inte uppkopplad mot servern för tillfället!</span>
+    			<span id="messages"></span> 
+    			<span>
+    				Spelarfärg: 
+    				<svg height="30" width="30">
+  						<circle id="colorCircle" cx="15" cy="15" r="10" stroke="black" stroke-width="1" fill="black" />
+					</svg> 
+    			</span>
+    		</div>
+
+	</div>
+
+    <div class="center container">
+       		<canvas width="500" height="600" id="touch_canvas">
+				Canvas tag not supported!			
+			</canvas>
+	</div>
+
 
 	</body>
+
 </html> 

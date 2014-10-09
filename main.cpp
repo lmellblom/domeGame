@@ -294,8 +294,10 @@ void renderSkyBox()
     glUniformMatrix4fv(Matrix_Loc_Box, 1, GL_FALSE, &MVP[0][0]);
  
     //draw the box
+	glFrontFace(GL_CW);
     myBox->draw();
- 
+	glFrontFace(GL_CCW);
+
     sgct::ShaderManager::instance()->unBindShaderProgram();
  
     glDisable( GL_CULL_FACE );

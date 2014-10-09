@@ -7,6 +7,12 @@ SET(APP_NAME domeGame)
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
 
+#static please!
+if(MSVC)
+set(CMAKE_CXX_FLAGS_RELEASE "/MT")
+set(CMAKE_CXX_FLAGS_DEBUG "/MTd")
+endif(MSVC)
+
 #added--------
 if(MSVC)
   set(BULLET_ROOT ${CMAKE_SOURCE_DIR}/bullet)

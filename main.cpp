@@ -154,7 +154,6 @@ void myInitFun()
     Color_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "FaceColor" );
     Avatar_Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "Tex" );
     
-    
     // for the skyBox
     sgct::TextureManager::instance()->loadTexure(myTextureHandle, "skyBox", "sky.png", true);
 
@@ -173,13 +172,8 @@ void myInitFun()
  
     Matrix_Loc_Box = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
     Tex_Loc_Box = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "Tex" );
-    //glUniform1i( Tex_Loc_Box, 0 );
 
- 
     sgct::ShaderManager::instance()->unBindShaderProgram();
-
-
-
 }
 
 void myDrawFun()
@@ -187,11 +181,9 @@ void myDrawFun()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
-    //MVP = gEngine->getActiveModelViewProjectionMatrix();
+    MVP = gEngine->getActiveModelViewProjectionMatrix();
 
     renderSkyBox();
-
-    MVP = gEngine->getActiveModelViewProjectionMatrix();
     renderAvatars();
 
     //unbind shader program
@@ -279,26 +271,22 @@ void renderSkyBox()
     // för drawbox
     glEnable( GL_DEPTH_TEST );
     glEnable( GL_CULL_FACE );
- 
-    double speed = 25.0;
- 
+  
     //create scene transform (animation)
     glm::mat4 scene_mat = glm::translate( glm::mat4(1.0f), glm::vec3( 0.0f, 0.0f, 0.0f) );
-    scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * speed ), glm::vec3(0.0f, -1.0f, 0.0f));
-    //scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * (speed/2.0) ), glm::vec3(1.0f, 0.0f, 0.0f));
+
+    glm::mat4 BoxMVP = MVP * scene_mat; // MVP = gEngine->getActiveModelViewProjectionMatrix()
  
-    glm::mat4 MVP = gEngine->getActiveModelViewProjectionMatrix() * scene_mat;
- 
+
+    sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(myTextureHandle) );
- 
-    sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
- 
-    glUniformMatrix4fv(Matrix_Loc_Box, 1, GL_FALSE, &MVP[0][0]);
+  
+    glUniformMatrix4fv(Matrix_Loc_Box, 1, GL_FALSE, &BoxMVP[0][0]);
     glUniform1i( Tex_Loc_Box, 0 );
-
  
-    //draw the box
+    //draw the box (to make the texture on inside)
 	glFrontFace(GL_CW);
     myBox->draw();
 	glFrontFace(GL_CCW);
@@ -313,9 +301,6 @@ void renderSkyBox()
 // renderar den fina figuren som visas. 
 void renderAvatars()
 {
-
-
-    //float speed = 50.0f;
     float radius = 7.4f; // om jag ändrade till 2.0f så blev den större (!) (kan det inte vara typ positionen den ska ritas ut)
     float time_visible = 5.0f;
     
@@ -354,7 +339,6 @@ void renderAvatars()
 				glm::vec3(axis.getX(), axis.getY(), axis.getZ()));
 
 			avatarMat = MVP * rot_mat * trans_mat;
-            
 
             color.r = webUsers_copy[i].getRed();
             color.g = webUsers_copy[i].getGreen();

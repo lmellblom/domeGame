@@ -40,9 +40,12 @@ Simulation::~Simulation()  {
 	delete ground_shape_;
 
 	for (int i = 0; i < MAX_OBJECTS; i++) {
-		dynamics_world_->removeRigidBody(object_list_[i]);
-		delete object_list_[i]->getMotionState();
-		delete object_list_[i];
+		if (object_list_[i] != NULL) {
+			delete constraint_list_[i];
+			dynamics_world_->removeRigidBody(object_list_[i]);
+			delete object_list_[i]->getMotionState();
+			delete object_list_[i];
+		}
 	}
 	delete sphere_shape_;
 
@@ -62,7 +65,7 @@ void Simulation::Step(float dt) {
 void Simulation::SetObjectTarget(int i, const btVector3& v) {
 	
 	//constants choosen at random sorta
-	const float MAX_SPEED = 1.0;
+	const float MAX_SPEED = 10.0;
 	const float IMPULSE_FORCE = 500.0;
 
 	if (object_list_[i] != NULL) {

@@ -34,7 +34,9 @@ add_executable(${APP_NAME}
 	UserData.h
 	UserData.cpp
 	Quad.h
-	Quad.cpp)
+	Quad.cpp
+	Simulation.h
+	Simulation.cpp)
 
 set(TARGET_PATH "${PROJECT_SOURCE_DIR}/bin")
 	

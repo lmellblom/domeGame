@@ -8,82 +8,14 @@ All rights reserved.
 #include "Webserver.h"
 #include "UserData.h"
 #include "Quad.h"
+#include "Simulation.h"
 
 #include <iostream>
-
-#include <btBulletDynamicsCommon.h>
 
 #define MAX_WEB_USERS 256
 
 sgct::Engine * gEngine;
 
-//BULLET HELLO WORLD
-void bulletTest()
-{
-
-	btBroadphaseInterface* broadphase = new btDbvtBroadphase();
-
-	btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
-	btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
-
-	btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
-
-	btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
-
-	dynamicsWorld->setGravity(btVector3(0, -10, 0));
-
-
-	btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
-
-	btCollisionShape* fallShape = new btSphereShape(1);
-
-
-	btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
-	btRigidBody::btRigidBodyConstructionInfo
-		groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
-	btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI);
-	dynamicsWorld->addRigidBody(groundRigidBody);
-
-
-	btDefaultMotionState* fallMotionState =
-		new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 50, 0)));
-	btScalar mass = 1;
-	btVector3 fallInertia(0, 0, 0);
-	fallShape->calculateLocalInertia(mass, fallInertia);
-	btRigidBody::btRigidBodyConstructionInfo fallRigidBodyCI(mass, fallMotionState, fallShape, fallInertia);
-	btRigidBody* fallRigidBody = new btRigidBody(fallRigidBodyCI);
-	dynamicsWorld->addRigidBody(fallRigidBody);
-
-
-	for (int i = 0; i < 300; i++) {
-		dynamicsWorld->stepSimulation(1 / 60.f, 10);
-
-		btTransform trans;
-		fallRigidBody->getMotionState()->getWorldTransform(trans);
-
-		std::cout << "sphere height: " << trans.getOrigin().getY() << std::endl;
-	}
-
-	dynamicsWorld->removeRigidBody(fallRigidBody);
-	delete fallRigidBody->getMotionState();
-	delete fallRigidBody;
-
-	dynamicsWorld->removeRigidBody(groundRigidBody);
-	delete groundRigidBody->getMotionState();
-	delete groundRigidBody;
-
-
-	delete fallShape;
-
-	delete groundShape;
-
-
-	delete dynamicsWorld;
-	delete solver;
-	delete collisionConfiguration;
-	delete dispatcher;
-	delete broadphase;
-}
 
 void myInitFun();
 void myDrawFun();
@@ -104,7 +36,10 @@ std::vector<UserData> webUsers_copy;
 tthread::mutex mWebMutex; //used for thread exclusive data access (prevent corruption)
 
 sgct::SharedFloat curr_time(0.0f);
+sgct::SharedFloat last_time(0.0f);
 sgct::SharedVector<UserData> sharedUserData;
+
+Simulation sim;
 
 bool takeScreenShot = false;
 glm::mat4 MVP;
@@ -154,7 +89,6 @@ void webDecoder(const char * msg, size_t len)
 
 int main( int argc, char* argv[] )
 {
-	bulletTest();
 	// Allocate
 	gEngine = new sgct::Engine( argc, argv );
 
@@ -182,9 +116,6 @@ int main( int argc, char* argv[] )
         //webserver.start(9000);
         webserver.start(80);
     }
-
-    // testing bullet
-    btCollisionShape* fallShape = new btSphereShape(1);
 
 	// Main loop
 	gEngine->render();
@@ -267,6 +198,9 @@ void myPostSyncFun()
             takeScreenShot = false;
         }
     }
+
+	sim.Step(curr_time.getVal() - last_time.getVal());
+	last_time.setVal(curr_time.getVal());
 }
 
 void myEncodeFun()
@@ -328,18 +262,37 @@ void renderAvatars()
             glm::mat4 phiRot = glm::rotate( glm::mat4(1.0f),
                                            90.0f - glm::degrees( webUsers_copy[i].getPhi() ),
                                            glm::vec3(1.0f, 0.0f, 0.0f));
+			glm::mat4 pos_mat = thetaRot * phiRot * trans_mat;
+			glm::vec4 a_pos = pos_mat*glm::vec4(0.0, 0.0, 0.0, 1.0);
+			//std::cout << a_pos.x << " " << a_pos.y << " " << a_pos.z << std::endl;
+			sim.SetObjectTarget(i, btVector3(a_pos.x, a_pos.y, a_pos.z));
+			glm::mat4 avatarMat = MVP * sim.GetObjectTransform(i);
+			
+			
+			btQuaternion quat = sim.GetObjectDirection(i);
+			btVector3 axis = quat.getAxis();
+			float angle = quat.getAngle();
+
+			glm::mat4 rot_mat = glm::rotate(glm::mat4(1.0f),
+				glm::degrees(angle),
+				glm::vec3(axis.getX(), axis.getY(), axis.getZ()));
+
+			avatarMat = MVP * rot_mat * trans_mat;
             
-            glm::mat4 avatarMat = MVP * thetaRot * phiRot * trans_mat;
-            
+
             color.r = webUsers_copy[i].getRed();
             color.g = webUsers_copy[i].getGreen();
             color.b = webUsers_copy[i].getBlue();
             glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &avatarMat[0][0]);
             glUniform3f(Color_Loc, color.r, color.g, color.b);
             glUniform1i( Avatar_Tex_Loc, 0 );
-            
+
             avatar.draw();
         }
+		else
+		{
+			sim.RemoveObject(i);
+		}
     
 	avatar.unbind();
 }

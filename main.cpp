@@ -27,6 +27,7 @@ void myCleanUpFun();
 void keyCallback(int key, int action);
 
 void renderAvatars();
+void renderSkyBox();
 void renderConnectionInfo();
 
 Webserver webserver;
@@ -50,6 +51,11 @@ GLint Color_Loc = -1;
 GLint Avatar_Tex_Loc = -1;
 
 size_t avatarTex;
+
+size_t myTextureHandle; // for skyBox
+sgct_utils::SGCTBox * myBox = NULL; 
+GLint Matrix_Loc_Box = -1;
+
 
 Quad avatar;
 
@@ -130,24 +136,48 @@ int main( int argc, char* argv[] )
 
 void myInitFun()
 {
-    avatar.create(0.8f, 0.8f);
+    avatar.create(0.8f, 0.8f); // how big
     
     // load textures
     sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
 	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
     sgct::TextureManager::instance()->loadTexure(avatarTex, "avatar", "avatar.png", true);
 
+    // add shaders
 	sgct::ShaderManager::instance()->addShaderProgram( "avatar",
 			"avatar.vert",
 			"avatar.frag" );
-
 	sgct::ShaderManager::instance()->bindShaderProgram( "avatar" );
  
 	Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "MVP" );
     Color_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "FaceColor" );
     Avatar_Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "Tex" );
     
-	sgct::ShaderManager::instance()->unBindShaderProgram();
+    
+    // for the skyBox
+    sgct::TextureManager::instance()->loadTexure(myTextureHandle, "skyBox", "field.jpg", true);
+
+    // add the box
+    myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::Regular);
+
+    //Set up backface culling
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW); //our polygon winding is counter clockwise
+ 
+    sgct::ShaderManager::instance()->addShaderProgram( "xform",
+            "SimpleVertexShader.vert",
+            "SimpleFragmentShader.frag" );
+ 
+    sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
+ 
+    Matrix_Loc_Box = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
+    GLint Tex_Loc_Box = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "Tex" );
+    glUniform1i( Tex_Loc_Box, 0 );
+
+ 
+    sgct::ShaderManager::instance()->unBindShaderProgram();
+
+
 
 }
 
@@ -159,11 +189,13 @@ void myDrawFun()
     MVP = gEngine->getActiveModelViewProjectionMatrix();
     
     renderAvatars();
+    renderSkyBox();
 
     //unbind shader program
     sgct::ShaderManager::instance()->unBindShaderProgram();
-    
+
     glDisable(GL_BLEND);
+
 }
 
 void myPreSyncFun()
@@ -219,6 +251,9 @@ void myCleanUpFun()
 {
 	avatar.clear();
 
+    if(myBox != NULL)
+        delete myBox;
+
 }
 
 void keyCallback(int key, int action)
@@ -236,11 +271,45 @@ void keyCallback(int key, int action)
 	}
 }
 
+void renderSkyBox()
+{
+    // för drawbox
+    glEnable( GL_DEPTH_TEST );
+    glEnable( GL_CULL_FACE );
+ 
+    double speed = 25.0;
+ 
+    //create scene transform (animation)
+    glm::mat4 scene_mat = glm::translate( glm::mat4(1.0f), glm::vec3( 0.0f, 2.0f, -2.4f) );
+    //scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * speed ), glm::vec3(0.0f, -1.0f, 0.0f));
+    scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * (speed/2.0) ), glm::vec3(1.0f, 0.0f, 0.0f));
+ 
+    glm::mat4 MVP = gEngine->getActiveModelViewProjectionMatrix() * scene_mat;
+ 
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(myTextureHandle) );
+ 
+    sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
+ 
+    glUniformMatrix4fv(Matrix_Loc_Box, 1, GL_FALSE, &MVP[0][0]);
+ 
+    //draw the box
+    myBox->draw();
+ 
+    sgct::ShaderManager::instance()->unBindShaderProgram();
+ 
+    glDisable( GL_CULL_FACE );
+    glDisable( GL_DEPTH_TEST );
+
+}
+
 // renderar den fina figuren som visas. 
 void renderAvatars()
 {
+
+
     //float speed = 50.0f;
-    float radius = 7.4f; // om jag ändrade till 2.0f så blev den större (!) 
+    float radius = 7.4f; // om jag ändrade till 2.0f så blev den större (!) (kan det inte vara typ positionen den ska ritas ut)
     float time_visible = 5.0f;
     
     glm::mat4 trans_mat = glm::translate( glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -radius));

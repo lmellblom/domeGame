@@ -55,6 +55,7 @@ size_t avatarTex;
 size_t myTextureHandle; // for skyBox
 sgct_utils::SGCTBox * myBox = NULL; 
 GLint Matrix_Loc_Box = -1;
+GLint Tex_Loc_Box; 
 
 
 Quad avatar;
@@ -171,8 +172,8 @@ void myInitFun()
     sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
  
     Matrix_Loc_Box = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
-    GLint Tex_Loc_Box = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "Tex" );
-    glUniform1i( Tex_Loc_Box, 0 );
+    Tex_Loc_Box = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "Tex" );
+    //glUniform1i( Tex_Loc_Box, 0 );
 
  
     sgct::ShaderManager::instance()->unBindShaderProgram();
@@ -186,9 +187,11 @@ void myDrawFun()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
-    MVP = gEngine->getActiveModelViewProjectionMatrix();
-    
+    //MVP = gEngine->getActiveModelViewProjectionMatrix();
+
     renderSkyBox();
+
+    MVP = gEngine->getActiveModelViewProjectionMatrix();
     renderAvatars();
 
     //unbind shader program
@@ -281,6 +284,8 @@ void renderSkyBox()
  
     //create scene transform (animation)
     glm::mat4 scene_mat = glm::translate( glm::mat4(1.0f), glm::vec3( 0.0f, 0.0f, 0.0f) );
+    scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * speed ), glm::vec3(0.0f, -1.0f, 0.0f));
+    //scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * (speed/2.0) ), glm::vec3(1.0f, 0.0f, 0.0f));
  
     glm::mat4 MVP = gEngine->getActiveModelViewProjectionMatrix() * scene_mat;
  
@@ -290,6 +295,8 @@ void renderSkyBox()
     sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
  
     glUniformMatrix4fv(Matrix_Loc_Box, 1, GL_FALSE, &MVP[0][0]);
+    glUniform1i( Tex_Loc_Box, 0 );
+
  
     //draw the box
 	glFrontFace(GL_CW);

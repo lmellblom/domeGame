@@ -27,6 +27,7 @@ private:
 	btDiscreteDynamicsWorld* dynamics_world_;
 
 	btCollisionShape* ground_shape_;
+	btCollisionShape* game_object_;
 	btDefaultMotionState* ground_motion_state_;
 	btRigidBody* ground_rigid_body_;
 

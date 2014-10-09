@@ -12,7 +12,17 @@ Simulation::Simulation() {
 		broad_phase_, solver_, collision_configuration_);
 
 	//set gravity
-	//dynamics_world_->setGravity(btVector3(0, -9.82, 0));
+	dynamics_world_->setGravity(btVector3(0, -9.82, 0));
+
+	// Init game object
+	game_object_ = new btSphereShape(0.1);
+	btDefaultMotionState* fallMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 10, 0)));
+	btScalar mass = 1;
+	btVector3 fallInertia(0, 0, 0);
+	game_object_->calculateLocalInertia(mass, fallInertia);
+	btRigidBody::btRigidBodyConstructionInfo fallRigidBodyCI(mass, fallMotionState, game_object_, fallInertia);
+	btRigidBody* fallRigidBody = new btRigidBody(fallRigidBodyCI);
+	dynamics_world_->addRigidBody(fallRigidBody);
 
 	//init ground object
 	ground_shape_ = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
@@ -39,6 +49,7 @@ Simulation::~Simulation()  {
 	delete ground_rigid_body_->getMotionState();
 	delete ground_rigid_body_;
 	delete ground_shape_;
+	delete game_object_;
 
 	for (int i = 0; i < MAX_OBJECTS; i++) {
 		dynamics_world_->removeRigidBody(object_list_[i]);
@@ -47,6 +58,7 @@ Simulation::~Simulation()  {
 	}
 	delete sphere_shape_;
 
+	
 	delete dynamics_world_;
 	delete solver_;
 	delete collision_configuration_;

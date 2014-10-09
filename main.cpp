@@ -240,7 +240,7 @@ void keyCallback(int key, int action)
 void renderAvatars()
 {
     //float speed = 50.0f;
-    float radius = 7.4f;
+    float radius = 7.4f; // om jag ändrade till 2.0f så blev den större (!) 
     float time_visible = 5.0f;
     
     glm::mat4 trans_mat = glm::translate( glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -radius));

@@ -39,8 +39,7 @@ Simulation::Simulation() {
 	//dynamics_world_->addRigidBody(ground_rigid_body_);
 
 	//other
-	sphere_shape_ = new btSphereShape(0.8);
-
+	sphere_shape_ = new btSphereShape(0.04); // radius to the shape.. påverkar hur nära de kan vara.. bara höftat värdet
 
 }
 

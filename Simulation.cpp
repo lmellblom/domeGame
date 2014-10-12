@@ -101,7 +101,7 @@ void Simulation::SetObjectTarget(int i, const btVector3& v) {
 		dynamics_world_->addRigidBody(object_list_[i]);
 		object_list_[i]->setActivationState(DISABLE_DEACTIVATION);
 
-		constraint_list_[i] = new btPoint2PointConstraint(*ground_rigid_body_, *object_list_[i], btVector3(0, 0, 0), -position);
+		constraint_list_[i] = new btPoint2PointConstraint(*object_list_[i], -position);
 	}
 	
 }

@@ -28,9 +28,6 @@ Simulation::Simulation() {
 
 	//dynamics_world_->addRigidBody(ground_rigid_body_);
 
-	//other
-	sphere_shape_ = new btSphereShape(0.04); // radius to the shape.. påverkar hur nära de kan vara.. bara höftat värdet
-
 }
 
 Simulation::~Simulation()  {
@@ -39,15 +36,11 @@ Simulation::~Simulation()  {
 	delete ground_rigid_body_;
 	delete ground_shape_;
 
-	for (int i = 0; i < MAX_OBJECTS; i++) {
-		if (object_list_[i] != NULL) {
-			delete constraint_list_[i];
-			dynamics_world_->removeRigidBody(object_list_[i]);
-			delete object_list_[i]->getMotionState();
-			delete object_list_[i];
+	for (int i = 0; i < MAX_PLAYERS; i++)
+		if (player_list_[i] != NULL) {
+			delete player_list_[i];
 		}
-	}
-	delete sphere_shape_;
+
 
 	delete dynamics_world_;
 	delete solver_;
@@ -59,78 +52,39 @@ Simulation::~Simulation()  {
 
 void Simulation::Step(float dt) {
 	dynamics_world_->stepSimulation(dt, 5, 1.0/60.0);
+
+	for (int i = 0; i < MAX_PLAYERS; i++)
+		if (player_list_[i] != NULL) {
+			player_list_[i]->Update(dt);
+		}
 }
 
 //not very good solution, should be called at a fixed interval
-void Simulation::SetObjectTarget(int i, const btVector3& v) {
-	
-	//constants choosen at random sorta
-	const float MAX_SPEED = 10.0;
-	const float IMPULSE_FORCE = 500.0;
-
-	if (object_list_[i] != NULL) {
-		btVector3 current_position = object_list_[i]->getWorldTransform().getOrigin();
-		
-		//the direction is straight to the target. Should probably be along the plane by projecting the direction vector in the normal plane for current_position
-		btVector3 direction = v - current_position;
-		direction.normalize();
-
-		//object_list_[i]->applyCentralImpulse(IMPULSE_FORCE*direction);
-		float speed = object_list_[i]->getLinearVelocity().length();
-		object_list_[i]->setLinearVelocity(MAX_SPEED*direction);
-		btVector3 vec = current_position;
-		//std::cout << vec.getX() << " " << vec.getY() << " " << vec.getZ() << std::endl;
-		/*
-		btTransform transform = object_list_[i]->getCenterOfMassTransform();
-		transform.setOrigin(v);
-		object_list_[i]->setCenterOfMassTransform(transform);
-		*/
-		
+void Simulation::SetPlayerTarget(int i, const btVector3& v) {
+	if (player_list_[i] != NULL) {
+		player_list_[i]->SetTarget(v);
 	}
-	else { //create body if it doesn't exist
-		const float RADIUS = 7.4f;
-
-		btVector3 position = btVector3(0, RADIUS, 0);
-		btDefaultMotionState* fallMotionState =
-			new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), position));
-		btScalar mass = 1;
-		btVector3 fallInertia(0, 0, 0);
-		sphere_shape_->calculateLocalInertia(mass, fallInertia);
-		btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(mass, fallMotionState, sphere_shape_, fallInertia);
-		object_list_[i] = new btRigidBody(rigidBodyCI);
-		dynamics_world_->addRigidBody(object_list_[i]);
-		object_list_[i]->setActivationState(DISABLE_DEACTIVATION);
-
-		constraint_list_[i] = new btPoint2PointConstraint(*object_list_[i], -position);
+	else {
+		player_list_[i] = new PlayerObject(dynamics_world_, v);
 	}
 	
 }
 
-void Simulation::RemoveObject(int i) {
-	
-	if (object_list_[i] != NULL) {
-		delete constraint_list_[i];
-		dynamics_world_->removeRigidBody(object_list_[i]);
-		delete object_list_[i]->getMotionState();
-		delete object_list_[i];
-		object_list_[i] = NULL;
+void Simulation::RemovePlayer(int i) {
+	if (player_list_[i] != NULL) {
+		delete player_list_[i];
+		player_list_[i] = NULL;
 	}
-	
 }
 
-glm::mat4 Simulation::GetObjectTransform(int i) {
-	
-	btTransform transform = object_list_[i]->getWorldTransform();
-	glm::mat4 matrix;
-	transform.getOpenGLMatrix(glm::value_ptr(matrix));
-	return matrix;
-	
-}
-
-btQuaternion Simulation::GetObjectDirection(int i) {
+btQuaternion Simulation::GetPlayerDirection(int i) {
 	btVector3 up = btVector3(0, 0, -1);
-	btVector3 dir = object_list_[i]->getWorldTransform().getOrigin().normalize();
+	btVector3 dir = player_list_[i]->GetDirection();
 	btVector3 xyz = up.cross(dir);
 	float w = sqrt(up.length2() * dir.length2()) + up.dot(dir);
 		return btQuaternion(xyz.getX(), xyz.getY(), xyz.getZ(), w).normalize();
+}
+
+bool Simulation::PlayerExists(int i) {
+	return player_list_[i] != NULL;
 }

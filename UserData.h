@@ -26,12 +26,15 @@ public:
     inline float getRed() { return mRed; }
     inline float getGreen() { return mGreen; }
     inline float getBlue() { return mBlue; }
+	inline float getS() { return s; }
+	inline float getT() { return t; }
     
 		
 private:
 	float mTheta, mPhi;
     float mTimeStamp;
     float mRed, mGreen, mBlue;
+	float s, t;
 };
 
 #endif

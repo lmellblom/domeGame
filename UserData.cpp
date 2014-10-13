@@ -46,8 +46,8 @@ void UserData::set(float theta, float phi, float r, float g, float b, float time
 
 void UserData::setCartesian2d(int x, int y, float timeStamp)
 {
-    float s = (static_cast<float>(x)/CANVAS_SIZE)*2.0f - 1.0f;
-    float t = (static_cast<float>(y)/CANVAS_SIZE)*2.0f - 1.0f;
+    s = (static_cast<float>(x)/CANVAS_SIZE)*2.0f - 1.0f;
+    t = (static_cast<float>(y)/CANVAS_SIZE)*2.0f - 1.0f;
     
     float r2 = s*s + t*t;
     if( r2 <= 1.0f )

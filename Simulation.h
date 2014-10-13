@@ -4,8 +4,9 @@
 #include <btBulletDynamicsCommon.h>
 
 #include "sgct.h"
+#include "PlayerObject.h"
 
-#define MAX_OBJECTS 256
+#define MAX_PLAYERS 256
 
 class Simulation {
 public:
@@ -13,10 +14,10 @@ public:
 	~Simulation();
 
 	void Step(float dt);
-	void SetObjectTarget(int i, const btVector3& v);
-	void RemoveObject(int i);
-	glm::mat4 GetObjectTransform(int i);
-	btQuaternion GetObjectDirection(int i);
+	void SetPlayerTarget(int i, const btVector3& v);
+	void RemovePlayer(int i);
+	btQuaternion GetPlayerDirection(int i);
+	bool PlayerExists(int i);
 
 
 private:
@@ -30,9 +31,7 @@ private:
 	btDefaultMotionState* ground_motion_state_;
 	btRigidBody* ground_rigid_body_;
 
-	btCollisionShape* sphere_shape_;
-	btRigidBody* object_list_[MAX_OBJECTS];
-	btPoint2PointConstraint* constraint_list_[MAX_OBJECTS];
+	PlayerObject* player_list_[MAX_OBJECTS];
 };
 
 #endif  // Simulation_H

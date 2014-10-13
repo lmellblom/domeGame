@@ -13,6 +13,7 @@ All rights reserved.
 #include <iostream>
 
 #define MAX_WEB_USERS 256
+#define DOME_RADIUS 7.4f
 
 sgct::Engine * gEngine;
 
@@ -79,6 +80,15 @@ void webDecoder(const char * msg, size_t len)
             mWebMutex.lock();
             webUsers[id].setCartesian2d(posX, posY, static_cast<float>(sgct::Engine::getTime()));
             mWebMutex.unlock();
+
+			float s = webUsers[id].getS();
+			float t = -webUsers[id].getT();
+			float h = sqrt(1 - s*s - t*t);
+			btVector3 pos(webUsers[id].getS(), h, -webUsers[id].getT());
+			pos.normalize();
+			pos *= 7.4;
+			//calculate position vector
+			sim.SetPlayerTarget(id, pos);
         }
     }
     
@@ -217,6 +227,7 @@ void myPreSyncFun()
 
 void myPostSyncFun()
 {
+	const float DISCONNECT_TIME = 5.0f;
 	if (!gEngine->isMaster())
 	{
 		webUsers_copy = sharedUserData.getVal();
@@ -232,6 +243,11 @@ void myPostSyncFun()
 
 	sim.Step(curr_time.getVal() - last_time.getVal());
 	last_time.setVal(curr_time.getVal());
+	for (unsigned int i = 1; i<MAX_WEB_USERS; i++)
+		if (curr_time.getVal() - webUsers_copy[i].getTimeStamp() > DISCONNECT_TIME)
+		{
+			sim.RemovePlayer(i);
+		}
 }
 
 void myEncodeFun()
@@ -305,8 +321,7 @@ void renderSkyBox()
 // renderar den fina figuren som visas. 
 void renderAvatars()
 {
-    float radius = 7.4f; // om jag ändrade till 2.0f så blev den större (!) (kan det inte vara typ positionen den ska ritas ut)
-    float time_visible = 5.0f;
+    float radius = 7.4f; //Domens radie
     
     glm::mat4 trans_mat = glm::translate( glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -radius));
     glm::vec3 color;
@@ -317,24 +332,11 @@ void renderAvatars()
     glActiveTexture(GL_TEXTURE0);
     glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(avatarTex) );
     
+	//should really look over the rendering
     for(unsigned int i=1; i<MAX_WEB_USERS; i++)
-        if( curr_time.getVal() - webUsers_copy[i].getTimeStamp() < time_visible )
-        {
-            glm::mat4 thetaRot = glm::rotate( glm::mat4(1.0f),
-                                             glm::degrees( webUsers_copy[i].getTheta() ),
-                                             glm::vec3(0.0f, -1.0f, 0.0f));
-            
-            glm::mat4 phiRot = glm::rotate( glm::mat4(1.0f),
-                                           90.0f - glm::degrees( webUsers_copy[i].getPhi() ),
-                                           glm::vec3(1.0f, 0.0f, 0.0f));
-			glm::mat4 pos_mat = thetaRot * phiRot * trans_mat;
-			glm::vec4 a_pos = pos_mat*glm::vec4(0.0, 0.0, 0.0, 1.0);
-			//std::cout << a_pos.x << " " << a_pos.y << " " << a_pos.z << std::endl;
-			sim.SetObjectTarget(i, btVector3(a_pos.x, a_pos.y, a_pos.z));
-			glm::mat4 avatarMat = MVP * sim.GetObjectTransform(i);
-			
-			
-			btQuaternion quat = sim.GetObjectDirection(i);
+        if( sim.PlayerExists(i) )
+        {	
+			btQuaternion quat = sim.GetPlayerDirection(i);
 			btVector3 axis = quat.getAxis();
 			float angle = quat.getAngle();
 
@@ -342,7 +344,7 @@ void renderAvatars()
 				glm::degrees(angle),
 				glm::vec3(axis.getX(), axis.getY(), axis.getZ()));
 
-			avatarMat = MVP * rot_mat * trans_mat;
+			glm::mat4 avatarMat = MVP * rot_mat * trans_mat;
 
             color.r = webUsers_copy[i].getRed();
             color.g = webUsers_copy[i].getGreen();
@@ -353,10 +355,6 @@ void renderAvatars()
 
             avatar.draw();
         }
-		else
-		{
-			sim.RemoveObject(i);
-		}
     
 	avatar.unbind();
 }

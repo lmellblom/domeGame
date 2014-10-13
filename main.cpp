@@ -30,6 +30,7 @@ void keyCallback(int key, int action);
 void renderAvatars();
 void renderSkyBox();
 void renderConnectionInfo();
+void renderBalls();
 
 Webserver webserver;
 UserData webUsers[MAX_WEB_USERS];
@@ -60,6 +61,7 @@ GLint Tex_Loc_Box;
 
 
 Quad avatar;
+Quad ball;
 
 // tar emot data från html-sidan
 void webDecoder(const char * msg, size_t len)
@@ -152,6 +154,7 @@ int main( int argc, char* argv[] )
 void myInitFun()
 {
     avatar.create(0.8f, 0.8f); // how big
+	ball.create(2.0f, 2.0f);
     
     // load textures
     sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
@@ -198,7 +201,8 @@ void myDrawFun()
     MVP = gEngine->getActiveModelViewProjectionMatrix();
 
     renderSkyBox();
-    renderAvatars();
+	renderAvatars();
+	renderBalls();
 
     //unbind shader program
     sgct::ShaderManager::instance()->unBindShaderProgram();
@@ -335,7 +339,7 @@ void renderAvatars()
 	//should really look over the rendering
     for(unsigned int i=1; i<MAX_WEB_USERS; i++)
         if( sim.PlayerExists(i) )
-        {	
+		{	
 			btQuaternion quat = sim.GetPlayerDirection(i);
 			btVector3 axis = quat.getAxis();
 			float angle = quat.getAngle();
@@ -357,4 +361,36 @@ void renderAvatars()
         }
     
 	avatar.unbind();
+}
+
+void renderBalls() {
+	float radius = 7.4f; //Domens radie
+
+	glm::mat4 trans_mat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -radius));
+	glm::vec3 color;
+
+	sgct::ShaderManager::instance()->bindShaderProgram("avatar");
+	ball.bind();
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(avatarTex));
+
+	//should really look over the rendering
+	btQuaternion quat = sim.GetBallDirection(0);
+	btVector3 axis = quat.getAxis();
+	float angle = quat.getAngle();
+
+	glm::mat4 rot_mat = glm::rotate(glm::mat4(1.0f),
+		glm::degrees(angle),
+		glm::vec3(axis.getX(), axis.getY(), axis.getZ()));
+
+	glm::mat4 avatarMat = MVP * rot_mat * trans_mat;
+
+	glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &avatarMat[0][0]);
+	glUniform3f(Color_Loc, 1.0, 1.0, 1.0);
+	glUniform1i(Avatar_Tex_Loc, 0);
+
+	ball.draw();
+
+	ball.unbind();
 }

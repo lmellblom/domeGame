@@ -1,33 +1,12 @@
 #include "PlayerObject.h"
 #include <iostream>
 
-PlayerObject::PlayerObject(btDiscreteDynamicsWorld* world, btVector3 pos) {
-	world_ = world;
-
-	shape_ = new btSphereShape(0.35);
-
-	btDefaultMotionState* fallMotionState =
-		new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), pos));
-	btScalar mass = 1;
-	btVector3 fallInertia(0, 0, 0);
-	shape_->calculateLocalInertia(mass, fallInertia);
-	btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(mass, fallMotionState, shape_, fallInertia);
-	body_ = new btRigidBody(rigidBodyCI);
-	world_->addRigidBody(body_);
-	body_->setActivationState(DISABLE_DEACTIVATION);
-	constraint_ = new btPoint2PointConstraint(*body_, -pos);
-	world_->addConstraint(constraint_);
-
+PlayerObject::PlayerObject(btDiscreteDynamicsWorld* world, btVector3 pos)
+: Ball(world, pos, 0.35, 1){
 }
 
 PlayerObject::~PlayerObject()  {
-	world_->removeConstraint(constraint_);
-	delete constraint_;
 
-	world_->removeRigidBody(body_);
-	delete body_->getMotionState();
-	delete body_;
-	delete shape_;
 }
 
 void PlayerObject::Update(float dt) {
@@ -55,9 +34,4 @@ void PlayerObject::SetTarget(btVector3 v) {
 	target_ = v;
 	v = body_->getWorldTransform().getOrigin();
 	//std::cout << "Positi: " << v.getX() << " " << v.getY() << " " << v.getZ() << std::endl;
-}
-
-btVector3 PlayerObject::GetDirection() {
-	btVector3 pos = body_->getWorldTransform().getOrigin();
-	return pos.normalize();
 }

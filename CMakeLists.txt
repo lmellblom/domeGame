@@ -36,7 +36,11 @@ add_executable(${APP_NAME}
 	Quad.h
 	Quad.cpp
 	Simulation.h
-	Simulation.cpp)
+	Simulation.cpp
+	Ball.h
+	Ball.cpp
+	PlayerObject.h
+	PlayerObject.cpp)
 
 set(TARGET_PATH "${PROJECT_SOURCE_DIR}/bin")
 	

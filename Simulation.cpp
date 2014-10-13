@@ -1,4 +1,5 @@
 #include "Simulation.h"
+#include "PlayerObject.h"
 #include <iostream>
 
 Simulation::Simulation() {
@@ -28,6 +29,7 @@ Simulation::Simulation() {
 
 	//dynamics_world_->addRigidBody(ground_rigid_body_);
 
+	ball_list_[0] = new Ball(dynamics_world_, btVector3(0.0, 7.4, 0.0), 1.0, 3.0);
 }
 
 Simulation::~Simulation()  {
@@ -82,9 +84,18 @@ btQuaternion Simulation::GetPlayerDirection(int i) {
 	btVector3 dir = player_list_[i]->GetDirection();
 	btVector3 xyz = up.cross(dir);
 	float w = sqrt(up.length2() * dir.length2()) + up.dot(dir);
-		return btQuaternion(xyz.getX(), xyz.getY(), xyz.getZ(), w).normalize();
+	return btQuaternion(xyz.getX(), xyz.getY(), xyz.getZ(), w).normalize();
 }
+
 
 bool Simulation::PlayerExists(int i) {
 	return player_list_[i] != NULL;
+}
+
+btQuaternion Simulation::GetBallDirection(int i) {
+	btVector3 up = btVector3(0, 0, -1);
+	btVector3 dir = ball_list_[i]->GetDirection();
+	btVector3 xyz = up.cross(dir);
+	float w = sqrt(up.length2() * dir.length2()) + up.dot(dir);
+	return btQuaternion(xyz.getX(), xyz.getY(), xyz.getZ(), w).normalize();
 }

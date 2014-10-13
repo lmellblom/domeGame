@@ -7,6 +7,7 @@
 #include "PlayerObject.h"
 
 #define MAX_PLAYERS 256
+#define MAX_STUFF 10
 
 class Simulation {
 public:
@@ -18,6 +19,7 @@ public:
 	void RemovePlayer(int i);
 	btQuaternion GetPlayerDirection(int i);
 	bool PlayerExists(int i);
+	btQuaternion GetBallDirection(int i);
 
 
 private:
@@ -32,6 +34,7 @@ private:
 	btRigidBody* ground_rigid_body_;
 
 	PlayerObject* player_list_[MAX_OBJECTS];
+	Ball* ball_list_[MAX_STUFF];
 };
 
 #endif  // Simulation_H

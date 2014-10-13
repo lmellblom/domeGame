@@ -10,23 +10,28 @@ PlayerObject::~PlayerObject()  {
 }
 
 void PlayerObject::Update(float dt) {
+	
 	const float MAX_SPEED = 10.0;
 	const float FORCE = 10.0/dt;
 	
 	btVector3 position = body_->getWorldTransform().getOrigin();
 	btVector3 direction = target_ - position;
-
+	float distance2 = direction.length2();
+	direction.normalize();
+	
 	position.normalize();
 	btVector3 force_direction = direction - direction.dot(position) * position;
 	force_direction.normalize();
-	force_direction = direction.normalize();
 	
-	body_->applyCentralForce(FORCE*force_direction);
+	//body_->applyCentralForce(FORCE*force_direction);
 
 	float speed = body_->getLinearVelocity().length();
 
-	if (speed > MAX_SPEED) {
-		body_->setLinearVelocity(MAX_SPEED/speed*body_->getLinearVelocity());
+	if (distance2 < 0.1){
+		body_->setLinearVelocity(btVector3(0.0,0.0,0.0));
+	}
+	else{
+		body_->setLinearVelocity((MAX_SPEED)* force_direction);
 	}
 }
 

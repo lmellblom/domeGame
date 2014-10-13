@@ -13,7 +13,7 @@ Simulation::Simulation() {
 		broad_phase_, solver_, collision_configuration_);
 
 	//set gravity
-	//dynamics_world_->setGravity(btVector3(0, -9.82, 0));
+	dynamics_world_->setGravity(btVector3(0, 0.01, 0));
 
 	//init ground object
 	ground_shape_ = new btStaticPlaneShape(btVector3(0, 1, 0), 1);

@@ -17,6 +17,7 @@ public:
     void set(float theta, float phi, float r, float g, float b, float timeStamp);
     void setCartesian2d(int x, int y, float timeStamp);
     void setColor(float r, float g, float b); 
+	void setTimeStamp(float t);
     
     inline float getPhi() { return mPhi; }
     inline float getTheta() { return mTheta; }

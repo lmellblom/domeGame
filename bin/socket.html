@@ -273,6 +273,7 @@
 
 		//connect to server
 		connect();
+		setInterval(function(){socket_di.send( "ping " + clientID + "\n" )}, 3000);
 
 
 	</script>

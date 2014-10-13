@@ -64,3 +64,7 @@ void UserData::setCartesian2d(int x, int y, float timeStamp)
     mBlue = b;*/
     mTimeStamp = timeStamp;
 }
+
+void UserData::setTimeStamp(float t) {
+	mTimeStamp = t;
+}

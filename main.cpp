@@ -84,13 +84,17 @@ void webDecoder(const char * msg, size_t len)
     
     // to set the color on the figur... is done only once when the page starts at the user.
     // the color is set in the webbrowser at the moment..
-    if (sscanf(msg, "rgb %u %f %f %f\n", &id, &color[0], &color[1], &color[2]) == 4){
+    else if (sscanf(msg, "rgb %u %f %f %f\n", &id, &color[0], &color[1], &color[2]) == 4){
         color[0] /= 255.0f;
         color[1] /= 255.0f;
         color[2] /= 255.0f;
         webUsers[id].setColor(color[0], color[1], color[2]);
         //fprintf(stderr, "%s\n", "sätt färgen på figuren!!! "); // debugsyfte
     }
+
+	else if (sscanf(msg, "ping %u\n", &id) == 1){
+		webUsers[id].setTimeStamp(static_cast<float>(sgct::Engine::getTime()));
+	}
 
 }
 

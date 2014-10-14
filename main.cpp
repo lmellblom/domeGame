@@ -8,82 +8,15 @@ All rights reserved.
 #include "Webserver.h"
 #include "UserData.h"
 #include "Quad.h"
+#include "Simulation.h"
 
 #include <iostream>
 
-#include <btBulletDynamicsCommon.h>
-
 #define MAX_WEB_USERS 256
+#define DOME_RADIUS 7.4f
 
 sgct::Engine * gEngine;
 
-//BULLET HELLO WORLD
-void bulletTest()
-{
-
-	btBroadphaseInterface* broadphase = new btDbvtBroadphase();
-
-	btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
-	btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
-
-	btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
-
-	btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
-
-	dynamicsWorld->setGravity(btVector3(0, -10, 0));
-
-
-	btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
-
-	btCollisionShape* fallShape = new btSphereShape(1);
-
-
-	btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
-	btRigidBody::btRigidBodyConstructionInfo
-		groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
-	btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI);
-	dynamicsWorld->addRigidBody(groundRigidBody);
-
-
-	btDefaultMotionState* fallMotionState =
-		new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 50, 0)));
-	btScalar mass = 1;
-	btVector3 fallInertia(0, 0, 0);
-	fallShape->calculateLocalInertia(mass, fallInertia);
-	btRigidBody::btRigidBodyConstructionInfo fallRigidBodyCI(mass, fallMotionState, fallShape, fallInertia);
-	btRigidBody* fallRigidBody = new btRigidBody(fallRigidBodyCI);
-	dynamicsWorld->addRigidBody(fallRigidBody);
-
-
-	for (int i = 0; i < 300; i++) {
-		dynamicsWorld->stepSimulation(1 / 60.f, 10);
-
-		btTransform trans;
-		fallRigidBody->getMotionState()->getWorldTransform(trans);
-
-		std::cout << "sphere height: " << trans.getOrigin().getY() << std::endl;
-	}
-
-	dynamicsWorld->removeRigidBody(fallRigidBody);
-	delete fallRigidBody->getMotionState();
-	delete fallRigidBody;
-
-	dynamicsWorld->removeRigidBody(groundRigidBody);
-	delete groundRigidBody->getMotionState();
-	delete groundRigidBody;
-
-
-	delete fallShape;
-
-	delete groundShape;
-
-
-	delete dynamicsWorld;
-	delete solver;
-	delete collisionConfiguration;
-	delete dispatcher;
-	delete broadphase;
-}
 
 void myInitFun();
 void myDrawFun();
@@ -95,7 +28,11 @@ void myCleanUpFun();
 void keyCallback(int key, int action);
 
 void renderAvatars();
+void renderSkyBox();
 void renderConnectionInfo();
+void renderBalls();
+
+void ping(unsigned int id); // ping from user
 
 Webserver webserver;
 UserData webUsers[MAX_WEB_USERS];
@@ -104,7 +41,10 @@ std::vector<UserData> webUsers_copy;
 tthread::mutex mWebMutex; //used for thread exclusive data access (prevent corruption)
 
 sgct::SharedFloat curr_time(0.0f);
+sgct::SharedFloat last_time(0.0f);
 sgct::SharedVector<UserData> sharedUserData;
+
+Simulation sim;
 
 bool takeScreenShot = false;
 glm::mat4 MVP;
@@ -116,9 +56,16 @@ GLint Avatar_Tex_Loc = -1;
 
 size_t avatarTex;
 
-Quad avatar;
+size_t myTextureHandle; // for skyBox
+sgct_utils::SGCTBox * myBox = NULL; 
+GLint Matrix_Loc_Box = -1;
+GLint Tex_Loc_Box; 
 
-// tar emot data från html-sidan
+
+Quad avatar;
+Quad ball;
+
+// fetch data from the html site. do different things depending on the input
 void webDecoder(const char * msg, size_t len)
 {
     
@@ -137,12 +84,21 @@ void webDecoder(const char * msg, size_t len)
             mWebMutex.lock();
             webUsers[id].setCartesian2d(posX, posY, static_cast<float>(sgct::Engine::getTime()));
             mWebMutex.unlock();
+
+			float s = webUsers[id].getS();
+			float t = -webUsers[id].getT();
+			float h = sqrt(1 - s*s - t*t);
+			btVector3 pos(webUsers[id].getS(), h, -webUsers[id].getT());
+			pos.normalize();
+			pos *= 7.4;
+			//calculate position vector
+			sim.SetPlayerTarget(id, pos);
         }
     }
     
     // to set the color on the figur... is done only once when the page starts at the user.
     // the color is set in the webbrowser at the moment..
-    if (sscanf(msg, "rgb %u %f %f %f\n", &id, &color[0], &color[1], &color[2]) == 4){
+    else if (sscanf(msg, "rgb %u %f %f %f\n", &id, &color[0], &color[1], &color[2]) == 4){
         color[0] /= 255.0f;
         color[1] /= 255.0f;
         color[2] /= 255.0f;
@@ -150,11 +106,19 @@ void webDecoder(const char * msg, size_t len)
         //fprintf(stderr, "%s\n", "sätt färgen på figuren!!! "); // debugsyfte
     }
 
+	else if (sscanf(msg, "signal %u\n", &id) == 1){
+        fprintf(stderr, "%s %u\n", "alive from user ", id );
+		webUsers[id].setTimeStamp(static_cast<float>(sgct::Engine::getTime()));
+	}
+
+    else if (sscanf(msg, "ping %u\n", &id) == 1){
+        ping(id);
+    }
+
 }
 
 int main( int argc, char* argv[] )
 {
-	bulletTest();
 	// Allocate
 	gEngine = new sgct::Engine( argc, argv );
 
@@ -183,9 +147,6 @@ int main( int argc, char* argv[] )
         webserver.start(80);
     }
 
-    // testing bullet
-    btCollisionShape* fallShape = new btSphereShape(1);
-
 	// Main loop
 	gEngine->render();
 
@@ -199,25 +160,44 @@ int main( int argc, char* argv[] )
 
 void myInitFun()
 {
-    avatar.create(0.8f, 0.8f);
+    avatar.create(0.8f, 0.8f); // how big
+	ball.create(2.0f, 2.0f);
     
     // load textures
     sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
 	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
     sgct::TextureManager::instance()->loadTexure(avatarTex, "avatar", "avatar.png", true);
 
+    // add shaders
 	sgct::ShaderManager::instance()->addShaderProgram( "avatar",
 			"avatar.vert",
 			"avatar.frag" );
-
 	sgct::ShaderManager::instance()->bindShaderProgram( "avatar" );
  
 	Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "MVP" );
     Color_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "FaceColor" );
     Avatar_Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "Tex" );
     
-	sgct::ShaderManager::instance()->unBindShaderProgram();
+    // for the skyBox
+    sgct::TextureManager::instance()->loadTexure(myTextureHandle, "skyBox", "sky.png", true);
 
+    // add the box
+    myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::SkyBox);
+
+    //Set up backface culling
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW); //our polygon winding is counter clockwise
+ 
+    sgct::ShaderManager::instance()->addShaderProgram( "xform",
+            "SimpleVertexShader.vert",
+            "SimpleFragmentShader.frag" );
+ 
+    sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
+ 
+    Matrix_Loc_Box = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
+    Tex_Loc_Box = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "Tex" );
+
+    sgct::ShaderManager::instance()->unBindShaderProgram();
 }
 
 void myDrawFun()
@@ -226,13 +206,16 @@ void myDrawFun()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
     MVP = gEngine->getActiveModelViewProjectionMatrix();
-    
-    renderAvatars();
+
+    renderSkyBox();
+	renderAvatars();
+	renderBalls();
 
     //unbind shader program
     sgct::ShaderManager::instance()->unBindShaderProgram();
-    
+
     glDisable(GL_BLEND);
+
 }
 
 void myPreSyncFun()
@@ -255,6 +238,7 @@ void myPreSyncFun()
 
 void myPostSyncFun()
 {
+	const float DISCONNECT_TIME = 5.0f;
 	if (!gEngine->isMaster())
 	{
 		webUsers_copy = sharedUserData.getVal();
@@ -267,6 +251,14 @@ void myPostSyncFun()
             takeScreenShot = false;
         }
     }
+
+	sim.Step(curr_time.getVal() - last_time.getVal());
+	last_time.setVal(curr_time.getVal());
+	for (unsigned int i = 1; i<MAX_WEB_USERS; i++)
+		if (curr_time.getVal() - webUsers_copy[i].getTimeStamp() > DISCONNECT_TIME)
+		{
+			sim.RemovePlayer(i);
+		}
 }
 
 void myEncodeFun()
@@ -285,6 +277,9 @@ void myCleanUpFun()
 {
 	avatar.clear();
 
+    if(myBox != NULL)
+        delete myBox;
+
 }
 
 void keyCallback(int key, int action)
@@ -302,12 +297,42 @@ void keyCallback(int key, int action)
 	}
 }
 
+void renderSkyBox()
+{
+    // för drawbox
+    glEnable( GL_DEPTH_TEST );
+    glEnable( GL_CULL_FACE );
+  
+    //create scene transform (animation)
+    glm::mat4 scene_mat = glm::translate( glm::mat4(1.0f), glm::vec3( 0.0f, 0.0f, 0.0f) );
+
+    glm::mat4 BoxMVP = MVP * scene_mat; // MVP = gEngine->getActiveModelViewProjectionMatrix()
+ 
+
+    sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(myTextureHandle) );
+  
+    glUniformMatrix4fv(Matrix_Loc_Box, 1, GL_FALSE, &BoxMVP[0][0]);
+    glUniform1i( Tex_Loc_Box, 0 );
+ 
+    //draw the box (to make the texture on inside)
+	glFrontFace(GL_CW);
+    myBox->draw();
+	glFrontFace(GL_CCW);
+
+    sgct::ShaderManager::instance()->unBindShaderProgram();
+ 
+    glDisable( GL_CULL_FACE );
+    glDisable( GL_DEPTH_TEST );
+
+}
+
 // renderar den fina figuren som visas. 
 void renderAvatars()
 {
-    //float speed = 50.0f;
-    float radius = 7.4f;
-    float time_visible = 5.0f;
+    float radius = 7.4f; //Domens radie
     
     glm::mat4 trans_mat = glm::translate( glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -radius));
     glm::vec3 color;
@@ -318,28 +343,68 @@ void renderAvatars()
     glActiveTexture(GL_TEXTURE0);
     glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(avatarTex) );
     
+	//should really look over the rendering, maybe use more threads??
     for(unsigned int i=1; i<MAX_WEB_USERS; i++)
-        if( curr_time.getVal() - webUsers_copy[i].getTimeStamp() < time_visible )
-        {
-            glm::mat4 thetaRot = glm::rotate( glm::mat4(1.0f),
-                                             glm::degrees( webUsers_copy[i].getTheta() ),
-                                             glm::vec3(0.0f, -1.0f, 0.0f));
-            
-            glm::mat4 phiRot = glm::rotate( glm::mat4(1.0f),
-                                           90.0f - glm::degrees( webUsers_copy[i].getPhi() ),
-                                           glm::vec3(1.0f, 0.0f, 0.0f));
-            
-            glm::mat4 avatarMat = MVP * thetaRot * phiRot * trans_mat;
-            
+        if( sim.PlayerExists(i) )
+		{	
+			btQuaternion quat = sim.GetPlayerDirection(i);
+			btVector3 axis = quat.getAxis();
+			float angle = quat.getAngle();
+
+			glm::mat4 rot_mat = glm::rotate(glm::mat4(1.0f),
+				glm::degrees(angle),
+				glm::vec3(axis.getX(), axis.getY(), axis.getZ()));
+
+			glm::mat4 avatarMat = MVP * rot_mat * trans_mat;
+
             color.r = webUsers_copy[i].getRed();
             color.g = webUsers_copy[i].getGreen();
             color.b = webUsers_copy[i].getBlue();
             glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &avatarMat[0][0]);
             glUniform3f(Color_Loc, color.r, color.g, color.b);
             glUniform1i( Avatar_Tex_Loc, 0 );
-            
+
             avatar.draw();
         }
     
 	avatar.unbind();
+}
+
+void renderBalls() {
+	float radius = 7.4f; //Domens radie
+
+	glm::mat4 trans_mat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -radius));
+	glm::vec3 color;
+
+	sgct::ShaderManager::instance()->bindShaderProgram("avatar");
+	ball.bind();
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(avatarTex));
+
+	//should really look over the rendering
+	btQuaternion quat = sim.GetBallDirection(0);
+	btVector3 axis = quat.getAxis();
+	float angle = quat.getAngle();
+
+	glm::mat4 rot_mat = glm::rotate(glm::mat4(1.0f),
+		glm::degrees(angle),
+		glm::vec3(axis.getX(), axis.getY(), axis.getZ()));
+
+	glm::mat4 avatarMat = MVP * rot_mat * trans_mat;
+
+	glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &avatarMat[0][0]);
+	glUniform3f(Color_Loc, 1.0, 1.0, 1.0);
+	glUniform1i(Avatar_Tex_Loc, 0);
+
+	ball.draw();
+
+	ball.unbind();
+}
+
+// function to be used when a user sends a ping. 
+void ping(unsigned int id) {
+    fprintf(stderr, "%s %u\n", "ping from the user ", id); // debug
+
+    // should be possible to make the user (if it is a cirlce), to just be bigger or something
 }

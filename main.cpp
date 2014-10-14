@@ -32,6 +32,8 @@ void renderSkyBox();
 void renderConnectionInfo();
 void renderBalls();
 
+void ping(unsigned int id); // ping from user
+
 Webserver webserver;
 UserData webUsers[MAX_WEB_USERS];
 std::vector<UserData> webUsers_copy;
@@ -63,7 +65,7 @@ GLint Tex_Loc_Box;
 Quad avatar;
 Quad ball;
 
-// tar emot data från html-sidan
+// fetch data from the html site. do different things depending on the input
 void webDecoder(const char * msg, size_t len)
 {
     
@@ -104,9 +106,14 @@ void webDecoder(const char * msg, size_t len)
         //fprintf(stderr, "%s\n", "sätt färgen på figuren!!! "); // debugsyfte
     }
 
-	else if (sscanf(msg, "ping %u\n", &id) == 1){
+	else if (sscanf(msg, "signal %u\n", &id) == 1){
+        fprintf(stderr, "%s %u\n", "alive from user ", id );
 		webUsers[id].setTimeStamp(static_cast<float>(sgct::Engine::getTime()));
 	}
+
+    else if (sscanf(msg, "ping %u\n", &id) == 1){
+        ping(id);
+    }
 
 }
 
@@ -336,7 +343,7 @@ void renderAvatars()
     glActiveTexture(GL_TEXTURE0);
     glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(avatarTex) );
     
-	//should really look over the rendering
+	//should really look over the rendering, maybe use more threads??
     for(unsigned int i=1; i<MAX_WEB_USERS; i++)
         if( sim.PlayerExists(i) )
 		{	
@@ -393,4 +400,11 @@ void renderBalls() {
 	ball.draw();
 
 	ball.unbind();
+}
+
+// function to be used when a user sends a ping. 
+void ping(unsigned int id) {
+    fprintf(stderr, "%s %u\n", "ping from the user ", id); // debug
+
+    // should be possible to make the user (if it is a cirlce), to just be bigger or something
 }

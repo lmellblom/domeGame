@@ -61,8 +61,7 @@
 		imageObj.onload = function()
 		{
 			ctx.drawImage(imageObj, 0, 0);
-		};
-		      
+		};		      
 
 		function init()
 		{
@@ -80,6 +79,9 @@
 			canvas.addEventListener("touchmove", touchXY, true);
 			canvas.addEventListener("touchend", touchUp, false);
 
+
+			//canvas.addEventListener("mouseup", mouseUp, false);
+			//canvas.addEventListener("touchcancel", touchUp, false);
 			document.body.addEventListener("mouseup", mouseUp, false);
 			document.body.addEventListener("touchcancel", touchUp, false);
 
@@ -91,32 +93,32 @@
 
 			color1 = "rgb(" + r + "," + g + "," + b + ")";				
 			color2 = "rgba(" + r + "," + g + "," + b + ",0.5)";
-		}
+		};
 
 		function mouseUp()
 		{
 			mouseIsDown = 0;
 			mouseXY();
-		}
+		};
 
 		function touchUp()
 		{
 			mouseIsDown = 0;
 			// no touch to track, so just show state
 			showPos();
-		}
+		};
 
 		function mouseDown()
 		{
 			mouseIsDown = 1;
 			mouseXY();
-		}
+		};
 
 		function touchDown()
 		{
 			mouseIsDown = 1;
 		    touchXY();
-		}
+		};
 
 		function touchXY(e)
 		{
@@ -128,7 +130,7 @@
 			yPos = e.targetTouches[0].pageY - canvas.offsetTop;
 			
 			parsePosition();
-		}
+		};
 
 		function mouseXY(e)
 		{
@@ -139,7 +141,7 @@
 			yPos = e.pageY - canvas.offsetTop;
 			
 			parsePosition();
-		}
+		};
 
 		function parsePosition()
 		{
@@ -156,7 +158,7 @@
 			}
 
 			showPos();
-		}
+		};
 
 		function showPos()
 		{	
@@ -185,7 +187,7 @@
 					socket_di.send( "pos " + clientID + " " + xPos + " " + yPos + "\n" );
 				}
 			}
-		}
+		};
 
 		function get_appropriate_ws_url()
 		{
@@ -211,7 +213,7 @@
 			/* + "/xxx" bit is for IE10 workaround */
 
 			return pcol + u[0] + "/xxx";
-		}
+		};
 
 		function connect()
 		{
@@ -269,13 +271,16 @@
 			{
 				document.getElementById("conn_status").innerHTML = "Error : " + exception;  
 			}
-		}
+		};
 
 		//connect to server
 		connect();
-		setInterval(function(){socket_di.send( "ping " + clientID + "\n" )}, 3000);
+		setInterval(function(){socket_di.send( "signal " + clientID + "\n" )}, 3000);
 
-
+		// function to only send a ping to the server when a button is pressed. 
+		function ping(){
+			socket_di.send("ping " + clientID + '\n');
+		};
 	</script>
 
 
@@ -292,7 +297,7 @@
 		<div class="jumbotron">
     		<h1>DomeGame</h1>
     		<p>Detta spel kräver sammarbete. Ni ska klara en uppgift tillsammans så klura ordentligt hur ni ska göra.</p>
-
+    		<a href="javascript: ping();">PING</a>
     		<div>
     			<span id="conn_status">Tyvärr så är du inte uppkopplad mot servern för tillfället!</span>
     			<span id="messages"></span> 

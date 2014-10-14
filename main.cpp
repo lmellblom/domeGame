@@ -56,11 +56,10 @@ GLint Avatar_Tex_Loc = -1;
 
 size_t avatarTex;
 
-size_t myTextureHandle; // for skyBox
+size_t textureSkyBox; // for skyBox
 sgct_utils::SGCTBox * myBox = NULL; 
 GLint Matrix_Loc_Box = -1;
-GLint Tex_Loc_Box; 
-
+GLint Tex_Loc_Box;
 
 Quad avatar;
 Quad ball;
@@ -179,7 +178,7 @@ void myInitFun()
     Avatar_Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "Tex" );
     
     // for the skyBox
-    sgct::TextureManager::instance()->loadTexure(myTextureHandle, "skyBox", "sky.png", true);
+    sgct::TextureManager::instance()->loadTexure(textureSkyBox, "skyBox", "sky.png", true);
 
     // add the box
     myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::SkyBox);
@@ -312,7 +311,7 @@ void renderSkyBox()
     sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(myTextureHandle) );
+    glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(textureSkyBox) );
   
     glUniformMatrix4fv(Matrix_Loc_Box, 1, GL_FALSE, &BoxMVP[0][0]);
     glUniform1i( Tex_Loc_Box, 0 );
@@ -332,7 +331,7 @@ void renderSkyBox()
 // renderar den fina figuren som visas. 
 void renderAvatars()
 {
-    float radius = 7.4f; //Domens radie
+    float radius = DOME_RADIUS; //Domens radie
     
     glm::mat4 trans_mat = glm::translate( glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -radius));
     glm::vec3 color;
@@ -371,7 +370,7 @@ void renderAvatars()
 }
 
 void renderBalls() {
-	float radius = 7.4f; //Domens radie
+	float radius = DOME_RADIUS; //Domens radie
 
 	glm::mat4 trans_mat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -radius));
 	glm::vec3 color;

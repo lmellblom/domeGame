@@ -13,13 +13,13 @@ Simulation::Simulation() {
 		broad_phase_, solver_, collision_configuration_);
 
 	//set gravity
-	dynamics_world_->setGravity(btVector3(0, 0.01, 0));
+	dynamics_world_->setGravity(btVector3(0, -5.82, -5.0)); // gravity of y.
 
 	//init ground object
 	ground_shape_ = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
 	ground_motion_state_ =
 		new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1),
-		btVector3(0, 0, 0)));
+		btVector3(0, 0, 0))); //position of the ground
 
 	btRigidBody::btRigidBodyConstructionInfo ground_rigid_bodyCI(0,
 		ground_motion_state_, ground_shape_, btVector3(0, 0, 0));
@@ -27,13 +27,13 @@ Simulation::Simulation() {
 	ground_rigid_body_ = new btRigidBody(ground_rigid_bodyCI);
 	ground_rigid_body_->setFriction(1.0f);
 
-	//dynamics_world_->addRigidBody(ground_rigid_body_);
+	dynamics_world_->addRigidBody(ground_rigid_body_);
 
-	ball_list_[0] = new Ball(dynamics_world_, btVector3(0.0, 7.4, 0.0), 1.0, 3.0);
+	ball_list_[0] = new Ball(dynamics_world_, btVector3(0.0, 7.4, 0.0), 1.0, 10.0); // the mass of the ball is the last argument
 }
 
 Simulation::~Simulation()  {
-	//dynamics_world_->removeRigidBody(ground_rigid_body_);
+	dynamics_world_->removeRigidBody(ground_rigid_body_);
 	delete ground_rigid_body_->getMotionState();
 	delete ground_rigid_body_;
 	delete ground_shape_;

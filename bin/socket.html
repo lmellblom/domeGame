@@ -32,6 +32,11 @@
 			background-color:#000000;
 
 		}
+		.alert-error {
+  			background-color: #f2dede;
+  			border-color: #eed3d7;
+  			color: #b94a48;
+		}
 
 		.center{
 			text-align: center;
@@ -89,7 +94,6 @@
 			ctx = canvas.getContext("2d");
 			
 			ctx.clearRect(0,0, canvas.width, canvas.height);
-
 			
 			ctx.drawImage(imageObj, 0, 0);
 			
@@ -99,8 +103,6 @@
 			canvas.addEventListener("touchmove", touchXY, true);
 			canvas.addEventListener("touchend", touchUp, false);
 
-			//canvas.addEventListener("mouseup", mouseUp, false);
-			//canvas.addEventListener("touchcancel", touchUp, false);
 			document.body.addEventListener("mouseup", mouseUp, false);
 			document.body.addEventListener("touchcancel", touchUp, false);
 
@@ -112,6 +114,11 @@
 
 			color1 = "rgb(" + r + "," + g + "," + b + ")";				
 			color2 = "rgba(" + r + "," + g + "," + b + ",0.5)";
+
+			document.getElementById("colorCircle").style.fill = color1; // sets the color
+
+			socket_di.send("rgb " + clientID + " " + r + " " + g + " " + b + "\n");
+
 		};
 
 		function mouseUp()
@@ -205,7 +212,7 @@
 					ctx.closePath();
 				
 					// detta är det som skickas tillbaka till servern.
-					socket_di.send( "pos " + clientID + " " + xPos + " " + yPos + "\n" );
+					socket_di.send( "pos " + clientID + " " + parseInt(xPos) + " " + parseInt(yPos) + "\n" );
 				}
 			}
 		};
@@ -251,13 +258,15 @@
 			{
 				socket_di.onopen = function()
 				{
-					document.getElementById("conn_status").innerHTML = "Connected";
+					//document.getElementById("conn_status").innerHTML = "Connected"; // only show message when we can connect
+					document.getElementById("conn_status").style.display = "none";
 					connected = 1;
 					showPos(); //redraw
 				} 
 
 				socket_di.onclose = function()
 				{
+					document.getElementById("conn_status").style.display = "block";
 					document.getElementById("conn_status").innerHTML= "Failed to connect";
 					connected = 0;
 					showPos(); //redraw
@@ -277,14 +286,12 @@
 					if(splitArr.length > 0)
 					{
 						clientID = Number(splitArr[0]); 
-						div.innerHTML = "Client id: " + clientID;
+						div.innerHTML = "Player: " + clientID;
 
 						// send information about what color we should have.
 						socket_di.send("rgb " + clientID + " " + r + " " + g + " " + b + "\n");
 
 						document.getElementById("colorCircle").style.fill = color1;
-
-
 					}
 				} 
 			}
@@ -297,43 +304,34 @@
 		//connect to server
 		connect();
 		setInterval(function(){socket_di.send( "signal " + clientID + "\n" )}, 3000);
-	</script>
 
-
-
+		</script>
     </head>
 
-    <body onLoad="init();">
+    <body onload="init();">
 
-<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 		<!-- Latest compiled and minified JavaScript -->
-		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
     	
-		<div class="jumbotron">
-    		<h1>DomeGame</h1>
-    		<p>Detta spel kräver sammarbete. Ni ska klara en uppgift tillsammans så klura ordentligt hur ni ska göra.</p>
-    		<!--<a href="javascript: ping();">PING</a>-->
-    		<div>
-    			<span id="conn_status">Tyvärr så är du inte uppkopplad mot servern för tillfället!</span>
-    			<span id="messages"></span> 
-    			<span>
-    				Spelarfärg: 
-    				<svg height="30" width="30">
-  						<circle id="colorCircle" cx="15" cy="15" r="10" stroke="black" stroke-width="1" fill="black" />
-					</svg> 
-    			</span>
-    		</div>
-
+	<div class="jumbotron">
+   		<div>
+   			<div class="alert alert-error" id="conn_status" style="display: none;"></div>
+    		<span id="messages"></span> 
+    		<span>
+    			<svg height="30" width="30">
+  					<circle id="colorCircle" cx="15" cy="15" r="10" stroke="black" stroke-width="1" fill="black" />
+				</svg> 
+    		</span>
+    	</div>
 	</div>
 
     <div class="center container">
-       		<canvas width="500" height="600" id="touch_canvas">
-				Canvas tag not supported!			
-			</canvas>
+       	<canvas width="500" height="600" id="touch_canvas">
+			Canvas tag not supported!			
+		</canvas>
 	</div>
 
-
 	</body>
-
 </html> 

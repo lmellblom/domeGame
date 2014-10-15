@@ -73,7 +73,8 @@ void webDecoder(const char * msg, size_t len)
     int posY = 0;
     int colorPos = 0;
     float color[3];
-    
+
+    //fprintf(stderr, "Message sent: %s\n", msg); // debug syfte iaf man vill veta vad som fås i meddelandet
     if ( sscanf( msg, "pos %u %d %d\n", &id, &posX, &posY) == 3 )
     {
         if( id > 0 && id < MAX_WEB_USERS)
@@ -96,13 +97,16 @@ void webDecoder(const char * msg, size_t len)
     // to set the color on the figur... is done only once when the page starts at the user.
     // the color is set in the webbrowser at the moment..
     else if (sscanf(msg, "rgb %u %f %f %f\n", &id, &color[0], &color[1], &color[2]) == 4){
+        fprintf(stderr, "Message sent: %s\n", msg); // debug syfte iaf man vill veta vad som fås i meddelandet
+
         color[0] /= 255.0f;
         color[1] /= 255.0f;
         color[2] /= 255.0f;
-        webUsers[id].setColor(color[0], color[1], color[2]);
-        //fprintf(stderr, "%s\n", "sätt färgen på figuren!!! "); // debugsyfte
-    }
+        
+        fprintf(stderr, "SET color : %f %f %f\n", color[0], color[1], color[2]); // debug syfte iaf man vill veta vad som fås i meddelandet
 
+        webUsers[id].setColor(color[0], color[1], color[2]);
+    }
 	else if (sscanf(msg, "signal %u\n", &id) == 1){
         fprintf(stderr, "%s %u\n", "alive from user ", id );
 		webUsers[id].setTimeStamp(static_cast<float>(sgct::Engine::getTime()));
@@ -113,7 +117,7 @@ void webDecoder(const char * msg, size_t len)
     }
 
     else {
-        fprintf(stderr, "Message from webpage: %s\n", msg); // debug syfte iaf man vill veta vad som fås i meddelandet
+        //fprintf(stderr, "Message from webpage: %s\n", msg); // debug syfte iaf man vill veta vad som fås i meddelandet
     }
 
 }

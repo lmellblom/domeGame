@@ -2,7 +2,8 @@
 <html>  
     <head>
     	<meta charset="UTF-8">
-		<meta name="viewport" content="width=512" initial-scale="1.0" maximum-scale="1.0"> 
+		<meta name="viewport" content="width=512, user-scalable=0" initial-scale="1.0" maximum-scale="1.0"> 
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 		<!-- FONTS-->
 		<link href='http://fonts.googleapis.com/css?family=Josefin+Sans' rel='stylesheet' type='text/css'>
 		<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300' rel='stylesheet' type='text/css'>
@@ -58,6 +59,25 @@
 		var imageObj = new Image();
 		imageObj.src = 'dome.jpg';
 
+		// function to only send a ping to the server when a button is pressed. 
+		function ping(){
+			socket_di.send("ping " + clientID + '\n');
+		};
+
+		// to be able to track a double tap
+		var mylatesttap; 
+		function doubletap(what) {
+	   		var now = new Date().getTime();
+	   		var timesince = now - mylatesttap;
+	   		if((timesince < 350) && (timesince > 0)){ // 350 gives how fast it must be to be a double click
+	    		// it is a double tap 
+	    		//socket_di.send("ping from user: " + clientID + " and from " + what);
+	    		ping(); 
+	   		}
+	   		mylatesttap = new Date().getTime();
+		}	
+		// ---------------------------------
+
 		imageObj.onload = function()
 		{
 			ctx.drawImage(imageObj, 0, 0);
@@ -79,7 +99,6 @@
 			canvas.addEventListener("touchmove", touchXY, true);
 			canvas.addEventListener("touchend", touchUp, false);
 
-
 			//canvas.addEventListener("mouseup", mouseUp, false);
 			//canvas.addEventListener("touchcancel", touchUp, false);
 			document.body.addEventListener("mouseup", mouseUp, false);
@@ -98,6 +117,7 @@
 		function mouseUp()
 		{
 			mouseIsDown = 0;
+			doubletap("browser"); // works only for web-pages i think..
 			mouseXY();
 		};
 
@@ -105,6 +125,7 @@
 		{
 			mouseIsDown = 0;
 			// no touch to track, so just show state
+			doubletap("mobile device"); // to se if a double tap.. works only on iphone in this case i think
 			showPos();
 		};
 
@@ -276,11 +297,6 @@
 		//connect to server
 		connect();
 		setInterval(function(){socket_di.send( "signal " + clientID + "\n" )}, 3000);
-
-		// function to only send a ping to the server when a button is pressed. 
-		function ping(){
-			socket_di.send("ping " + clientID + '\n');
-		};
 	</script>
 
 
@@ -297,7 +313,7 @@
 		<div class="jumbotron">
     		<h1>DomeGame</h1>
     		<p>Detta spel kräver sammarbete. Ni ska klara en uppgift tillsammans så klura ordentligt hur ni ska göra.</p>
-    		<a href="javascript: ping();">PING</a>
+    		<!--<a href="javascript: ping();">PING</a>-->
     		<div>
     			<span id="conn_status">Tyvärr så är du inte uppkopplad mot servern för tillfället!</span>
     			<span id="messages"></span> 

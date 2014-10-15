@@ -73,8 +73,6 @@ void webDecoder(const char * msg, size_t len)
     int posY = 0;
     int colorPos = 0;
     float color[3];
-
-    // fprintf(stderr, "Message from webpage: %s\n", msg); // debug syfte iaf man vill veta vad som fås i meddelandet
     
     if ( sscanf( msg, "pos %u %d %d\n", &id, &posX, &posY) == 3 )
     {
@@ -112,6 +110,10 @@ void webDecoder(const char * msg, size_t len)
 
     else if (sscanf(msg, "ping %u\n", &id) == 1){
         ping(id);
+    }
+
+    else {
+        fprintf(stderr, "Message from webpage: %s\n", msg); // debug syfte iaf man vill veta vad som fås i meddelandet
     }
 
 }

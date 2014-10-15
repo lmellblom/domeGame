@@ -67,7 +67,6 @@ Quad ball;
 // fetch data from the html site. do different things depending on the input
 void webDecoder(const char * msg, size_t len)
 {
-    
     unsigned int id = 0;
     int posX = 0;
     int posY = 0;
@@ -97,14 +96,10 @@ void webDecoder(const char * msg, size_t len)
     // to set the color on the figur... is done only once when the page starts at the user.
     // the color is set in the webbrowser at the moment..
     else if (sscanf(msg, "rgb %u %f %f %f\n", &id, &color[0], &color[1], &color[2]) == 4){
-        fprintf(stderr, "Message sent: %s\n", msg); // debug syfte iaf man vill veta vad som fås i meddelandet
-
         color[0] /= 255.0f;
         color[1] /= 255.0f;
         color[2] /= 255.0f;
         
-        fprintf(stderr, "SET color : %f %f %f\n", color[0], color[1], color[2]); // debug syfte iaf man vill veta vad som fås i meddelandet
-
         webUsers[id].setColor(color[0], color[1], color[2]);
     }
 	else if (sscanf(msg, "signal %u\n", &id) == 1){

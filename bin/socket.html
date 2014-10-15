@@ -28,7 +28,6 @@
 
 		canvas {
 			border:0px solid #fff; /*change back to black later, just to see where the canvas is*/
-			/*background-image:url('dome.jpg');*/
 			background-color:#000000;
 
 		}
@@ -44,7 +43,6 @@
 		</style>
 
 		<!-- handles position, draw on canvas, communicate with server etc.-->
-		<!--<script src="http://localhost/script.js"></script>-->
 		<script>
 		/*
 		Communicate with the server, handles the canvas, position etc. 
@@ -75,7 +73,6 @@
 	   		var now = new Date().getTime();
 	   		var timesince = now - mylatesttap;
 	   		if((timesince < 350) && (timesince > 0)){ // 350 gives how fast it must be to be a double click
-	    		// it is a double tap 
 	    		//socket_di.send("ping from user: " + clientID + " and from " + what);
 	    		ping(); 
 	   		}
@@ -107,7 +104,6 @@
 			document.body.addEventListener("touchcancel", touchUp, false);
 
 			// set rgb values! 0-255 on each! desice which color each player has!! 
-			// TODO: kanske lägga denna i cpp-koden ist?? 
 			r = Math.floor(Math.random() * 256);
 			g = Math.floor(Math.random() * 256);
 			b = Math.floor(Math.random() * 256);
@@ -117,7 +113,7 @@
 
 			document.getElementById("colorCircle").style.fill = color1; // sets the color
 
-			socket_di.send("rgb " + clientID + " " + r + " " + g + " " + b + "\n");
+			socket_di.send("rgb " + clientID + " " + r + " " + g + " " + b + "\n"); // sends a extra message to the webserver
 
 		};
 

@@ -56,7 +56,7 @@ GLint Avatar_Tex_Loc = -1;
 
 size_t avatarTex;
 
-size_t myTextureHandle; // for skyBox
+size_t textureSkyBox; // for skyBox
 sgct_utils::SGCTBox * myBox = NULL; 
 GLint Matrix_Loc_Box = -1;
 GLint Tex_Loc_Box; 
@@ -68,21 +68,20 @@ GLint Pings_Id;
 float pingedTime[MAX_WEB_USERS];
 glm::vec3 pingedPosition[MAX_WEB_USERS];
 int pingedIds[MAX_WEB_USERS];
+
 Quad avatar;
 Quad ball;
 
 // fetch data from the html site. do different things depending on the input
 void webDecoder(const char * msg, size_t len)
 {
-    
     unsigned int id = 0;
     int posX = 0;
     int posY = 0;
     int colorPos = 0;
     float color[3];
 
-    // fprintf(stderr, "Message from webpage: %s\n", msg); // debug syfte iaf man vill veta vad som fås i meddelandet
-    
+    //fprintf(stderr, "Message sent: %s\n", msg); // debug syfte iaf man vill veta vad som fås i meddelandet
     if ( sscanf( msg, "pos %u %d %d\n", &id, &posX, &posY) == 3 )
     {
         if( id > 0 && id < MAX_WEB_USERS)
@@ -108,10 +107,9 @@ void webDecoder(const char * msg, size_t len)
         color[0] /= 255.0f;
         color[1] /= 255.0f;
         color[2] /= 255.0f;
+        
         webUsers[id].setColor(color[0], color[1], color[2]);
-        //fprintf(stderr, "%s\n", "sätt färgen på figuren!!! "); // debugsyfte
     }
-
 	else if (sscanf(msg, "signal %u\n", &id) == 1){
         fprintf(stderr, "%s %u\n", "alive from user ", id );
 		webUsers[id].setTimeStamp(static_cast<float>(sgct::Engine::getTime()));
@@ -119,6 +117,10 @@ void webDecoder(const char * msg, size_t len)
 
     else if (sscanf(msg, "ping %u\n", &id) == 1){
         ping(id);
+    }
+
+    else {
+        //fprintf(stderr, "Message from webpage: %s\n", msg); // debug syfte iaf man vill veta vad som fås i meddelandet
     }
 
 }
@@ -191,7 +193,7 @@ void myInitFun()
     Avatar_Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "Tex" );
 
     // for the skyBox
-    sgct::TextureManager::instance()->loadTexure(myTextureHandle, "skyBox", "sky.png", true);
+    sgct::TextureManager::instance()->loadTexure(textureSkyBox, "skyBox", "sky.png", true);
 
     // add the box
     myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::SkyBox);
@@ -328,7 +330,7 @@ void renderSkyBox()
     sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(myTextureHandle) );
+    glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(textureSkyBox) );
   
     glUniformMatrix4fv(Matrix_Loc_Box, 1, GL_FALSE, &BoxMVP[0][0]);
     glUniform1i( Tex_Loc_Box, 0 );
@@ -357,7 +359,7 @@ void renderSkyBox()
 // renderar den fina figuren som visas. 
 void renderAvatars()
 {
-    float radius = 7.4f; //Domens radie
+    float radius = DOME_RADIUS; //Domens radie
     
     glm::mat4 trans_mat = glm::translate( glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -radius));
     glm::vec3 color;
@@ -396,7 +398,7 @@ void renderAvatars()
 }
 
 void renderBalls() {
-	float radius = 7.4f; //Domens radie
+	float radius = DOME_RADIUS; //Domens radie
 
 	glm::mat4 trans_mat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -radius));
 	glm::vec3 color;

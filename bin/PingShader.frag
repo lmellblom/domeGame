@@ -5,6 +5,7 @@
     uniform sampler2D Tex;
     uniform vec3[MAX_WEB_USERS] PingPos;
     uniform float[MAX_WEB_USERS] PingTime;
+    uniform int[MAX_WEB_USERS] PingId;
     uniform float CurrTime;
      
     in vec2 UV;
@@ -12,15 +13,20 @@
      
     void main()
     {	
-    	float time = CurrTime/100.0;
-	  	color = vec4(time, time, time, time);
+	  	color = texture(Tex, UV.st);
 	    
-	    if( PingTime[1] > 0.0f && ( CurrTime - PingTime[1] < 1 ) )
-		    color = vec4( PingPos[1].x, PingPos[1].y, PingPos[1].z, 1.0);
-		else 
-		    color = vec4(time, time, time, time);
-	    
+        // This is where the magic happens
+        int i = 0;
+        while(PingId[i] != -1) {
 
-    	//texture(Tex, UV.st);
+            if( CurrTime - PingTime[i] < 1 ) {
+
+                color = vec4( PingPos[i].x, PingPos[i].y, PingPos[i].z, 1.0);
+            
+            }
+
+            i++;
+        } 
+        
     }
 

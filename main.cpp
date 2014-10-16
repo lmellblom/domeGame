@@ -63,9 +63,11 @@ GLint Tex_Loc_Box;
 GLint Time_Loc;
 GLint Curr_Time;
 GLint Pos_Loc;
+GLint Pings_Id;
 
 float pingedTime[MAX_WEB_USERS];
 glm::vec3 pingedPosition[MAX_WEB_USERS];
+int pingedIds[MAX_WEB_USERS];
 Quad avatar;
 Quad ball;
 
@@ -170,6 +172,7 @@ void myInitFun()
 	for (int i = 0; i < MAX_WEB_USERS; i++) {
 		pingedTime[i] = 0.0f;
 		pingedPosition[i] = glm::vec3(0.f, 0.f, 0.f);
+		pingedIds[i] = -1;
 	}
 	
     // load textures
@@ -208,6 +211,7 @@ void myInitFun()
 	Time_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("PingTime"); 
 	Pos_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("PingPos");
 	Curr_Time = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("CurrTime");
+	Pings_Id = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("PingId");
 
     sgct::ShaderManager::instance()->unBindShaderProgram();
 }
@@ -330,18 +334,12 @@ void renderSkyBox()
     glUniform1i( Tex_Loc_Box, 0 );
 
 	//**************** PING! *******************
-	// glm::vec4 position_and_time[MAX_WEB_USERS];
-
-	/*
-	for (int i = 0; i < MAX_WEB_USERS; i++){
-		if(sim.PlayerExists(i)) {
-			glm::vec4  (sim.GetPlayerDirectionNonQuaternion(i)) : glm::vec4(0.f, 0.f, 0.f, 0.f);
-	} */
-
+	
 	GLfloat time = static_cast<float>(sgct::Engine::getTime());
 	// std::cout << "time: " << time << std::endl;
 	glUniform3fv(Pos_Loc, MAX_WEB_USERS, &pingedPosition[0][0]);
 	glUniform1fv(Time_Loc, MAX_WEB_USERS, &pingedTime[0]);
+	glUniform1iv(Pings_Id, MAX_WEB_USERS, &pingedIds[0]);
 	glUniform1f(Curr_Time, time);
 	//**************** END PING *****************/
 
@@ -469,6 +467,19 @@ void ping(unsigned int id) {
     // should be possible to make the user (if it is a cirlce), to just be bigger or something
 	pingedTime[id] = static_cast<float>(sgct::Engine::getTime());
 	pingedPosition[id] = sim.GetPlayerDirectionNonQuaternion(id);
+	
+	int i = 0;
+	while (pingedIds[i] != -1) {
+		std::cout << "pingedIds[" << i << "] = " << pingedIds[i] << std::endl;
+
+		if (pingedIds[i] == id) {
+			break;
+		}
+		
+		i++;
+	}
+	pingedIds[i] = id;
+
 	/*for (int i = 0; i < MAX_WEB_USERS; i++) {
 		std::cout << "pingedTime[" << i << "] = " << pingedTime[i] << std::endl;
 	}*/

@@ -18,7 +18,7 @@
 		body {
 			background-color: black;
 			font-family: Josefin Sans; 
-			font-size: 15px;
+			font-size: 18px;
 			margin: center;
 		}
 
@@ -256,6 +256,7 @@
 				{
 					//document.getElementById("conn_status").innerHTML = "Connected"; // only show message when we can connect
 					document.getElementById("conn_status").style.display = "none";
+					document.getElementById("playerInfo").style.display = "block";
 					connected = 1;
 					showPos(); //redraw
 				} 
@@ -264,6 +265,8 @@
 				{
 					document.getElementById("conn_status").style.display = "block";
 					document.getElementById("conn_status").innerHTML= "Failed to connect";
+					document.getElementById("playerInfo").style.display = "none";
+
 					connected = 0;
 					showPos(); //redraw
 					
@@ -312,14 +315,14 @@
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
     	
 	<div class="jumbotron">
-   		<div>
-   			<div class="alert alert-error" id="conn_status" style="display: none;"></div>
-    		<span id="messages"></span> 
-    		<span>
-    			<svg height="30" width="30">
+   		<div class="alert alert-error" id="conn_status" style="display: none;"></div>
+   		<div id="playerInfo">
+   			<span>
+    			<svg height="30" width="30" style="vertical-align: middle;">
   					<circle id="colorCircle" cx="15" cy="15" r="10" stroke="black" stroke-width="1" fill="black" />
 				</svg> 
     		</span>
+    		<span id="messages"></span>
     	</div>
 	</div>
 

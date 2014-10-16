@@ -18,6 +18,7 @@ public:
 	void SetPlayerTarget(int i, const btVector3& v);
 	void RemovePlayer(int i);
 	btQuaternion GetPlayerDirection(int i);
+	glm::vec3 GetPlayerDirectionNonQuaternion(int i);
 	bool PlayerExists(int i);
 	btQuaternion GetBallDirection(int i);
 

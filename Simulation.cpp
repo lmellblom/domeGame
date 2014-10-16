@@ -57,7 +57,7 @@ void Simulation::Step(float dt) {
 
 	for (int i = 0; i < MAX_PLAYERS; i++)
 		if (player_list_[i] != NULL) {
-			player_list_[i]->Update(dt);
+		player_list_[i]->Update(dt); //update player movement
 		}
 }
 
@@ -85,6 +85,14 @@ btQuaternion Simulation::GetPlayerDirection(int i) {
 	btVector3 xyz = up.cross(dir);
 	float w = sqrt(up.length2() * dir.length2()) + up.dot(dir);
 	return btQuaternion(xyz.getX(), xyz.getY(), xyz.getZ(), w).normalize();
+}
+
+glm::vec3 Simulation::GetPlayerDirectionNonQuaternion(int i) {
+	glm::vec3 dir = glm::vec3(player_list_[i]->GetDirection().getX(), 
+		player_list_[i]->GetDirection().getY(), 
+		player_list_[i]->GetDirection().getZ());
+
+	return dir;
 }
 
 

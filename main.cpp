@@ -60,8 +60,10 @@ size_t myTextureHandle; // for skyBox
 sgct_utils::SGCTBox * myBox = NULL; 
 GLint Matrix_Loc_Box = -1;
 GLint Tex_Loc_Box; 
+GLint Pos_Time_Loc;
+GLint Curr_Time;
 
-
+float pingedTime[MAX_WEB_USERS];
 Quad avatar;
 Quad ball;
 
@@ -162,7 +164,10 @@ void myInitFun()
 {
     avatar.create(0.8f, 0.8f); // how big
 	ball.create(2.0f, 2.0f);
-    
+
+	for (int i = 0; i < MAX_WEB_USERS; i++)
+		pingedTime[i] = 0.0f;
+
     // load textures
     sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
 	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
@@ -177,7 +182,7 @@ void myInitFun()
 	Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "MVP" );
     Color_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "FaceColor" );
     Avatar_Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "Tex" );
-    
+
     // for the skyBox
     sgct::TextureManager::instance()->loadTexure(myTextureHandle, "skyBox", "sky.png", true);
 
@@ -189,13 +194,15 @@ void myInitFun()
     glFrontFace(GL_CCW); //our polygon winding is counter clockwise
  
     sgct::ShaderManager::instance()->addShaderProgram( "xform",
-            "SimpleVertexShader.vert",
-            "SimpleFragmentShader.frag" );
+            "PingShader.vert",
+            "PingShader.frag" );
  
     sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
  
     Matrix_Loc_Box = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
     Tex_Loc_Box = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "Tex" );
+	Pos_Time_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("PosTime"); 
+	Curr_Time = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("CurrTime");
 
     sgct::ShaderManager::instance()->unBindShaderProgram();
 }
@@ -316,7 +323,22 @@ void renderSkyBox()
   
     glUniformMatrix4fv(Matrix_Loc_Box, 1, GL_FALSE, &BoxMVP[0][0]);
     glUniform1i( Tex_Loc_Box, 0 );
- 
+
+	//**************** PING! *******************
+	// glm::vec4 position_and_time[MAX_WEB_USERS];
+
+	/*
+	for (int i = 0; i < MAX_WEB_USERS; i++){
+		if(sim.PlayerExists(i)) {
+			glm::vec4  (sim.GetPlayerDirectionNonQuaternion(i)) : glm::vec4(0.f, 0.f, 0.f, 0.f);
+	} */
+
+	GLfloat time = static_cast<float>(sgct::Engine::getTime());
+	std::cout << "time: " << time << std::endl;
+	glUniform4fv(Pos_Time_Loc, MAX_WEB_USERS, &pingedTime[0]);
+	glUniform1f(Curr_Time, time);
+	//**************** END PING *****************/
+
     //draw the box (to make the texture on inside)
 	glFrontFace(GL_CW);
     myBox->draw();
@@ -402,9 +424,47 @@ void renderBalls() {
 	ball.unbind();
 }
 
+void renderPings() {
+	float radius = 7.4f; //Domens radie
+
+	glm::mat4 trans_mat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -radius));
+	glm::vec3 color;
+
+	sgct::ShaderManager::instance()->bindShaderProgram("avatar");
+	ball.bind();
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(avatarTex));
+
+	//should really look over the rendering
+	btQuaternion quat = sim.GetBallDirection(0);
+	btVector3 axis = quat.getAxis();
+	float angle = quat.getAngle();
+
+	glm::mat4 rot_mat = glm::rotate(glm::mat4(1.0f),
+		glm::degrees(angle),
+		glm::vec3(axis.getX(), axis.getY(), axis.getZ()));
+
+	glm::mat4 avatarMat = MVP * rot_mat * trans_mat;
+
+	glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &avatarMat[0][0]);
+	glUniform3f(Color_Loc, 1.0, 1.0, 1.0);
+	glUniform1i(Avatar_Tex_Loc, 0);
+
+	ball.draw();
+
+	ball.unbind();
+}
+
 // function to be used when a user sends a ping. 
 void ping(unsigned int id) {
     fprintf(stderr, "%s %u\n", "ping from the user ", id); // debug
 
     // should be possible to make the user (if it is a cirlce), to just be bigger or something
+	pingedTime[id] = static_cast<float>(sgct::Engine::getTime());
+	std::cout << "pingedTime[" << id << "] = " << pingedTime[id] << std::endl;
+
+
 }
+
+//Vektor med alla users, vektor med tiden för alla users, globala tiden

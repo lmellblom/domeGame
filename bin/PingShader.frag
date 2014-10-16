@@ -16,22 +16,25 @@
     {	
         // The superawesome sky texture!
         // Will be overwritten if statments below is true
-	  	 color = texture(Tex, UV.st);
-	    /*
+	  	color = texture(Tex, UV.st);
+
         // Variables... ACTIVATED!
-        // int i = 0;
-        // int id = 1;
-        float circle_radius = 1.2f;
-        float border = 2.0f;
+        float max_radius = 0.1;
 
+        for(int i = 0; i < 20; i++) {
 
-        // Instead of looping through 256 users we only look at the users that have pinged
-        float dist =  sqrt(dot(world_Position, PingPos[1]));
-        if(world_Position)
-        if ( (dist > (circle_radius+border)) || (dist < (circle_radius-border)) )
-            color = vec4(1.0, 0.0, 0.2, 1.0);
+                float time = (CurrTime - PingTime[1])*10;
+                vec3 normalizedPos = normalize(PingPos[i]);
+                vec3 normalizedWorldPos = normalize(world_Position);
 
-            */
+                float dist = length(normalizedWorldPos - normalizedPos);
+
+                if ( (dist > 0.03*time) && (dist < 0.04*time) && (dist < max_radius) ) {
+                      color = vec4(1.0, 1.0, 1.0, 1.0);
+                }  
+            
+             
+        }
         
     }
 

@@ -20,7 +20,7 @@ public:
 	void setTimeStamp(float t);
 
     void setTeam(int id); // decides team depending on the id
-    void getTeam();
+    int getTeam();
     
     inline float getPhi() { return mPhi; }
     inline float getTheta() { return mTheta; }

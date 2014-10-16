@@ -48,7 +48,7 @@ void UserData::setTeam(int id) {
     team = (id%2 == 0);
 }
 
-void UserData::getTeam() {
+int UserData::getTeam() {
     return team; 
 }
 

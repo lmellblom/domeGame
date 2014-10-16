@@ -44,6 +44,10 @@ void UserData::set(float theta, float phi, float r, float g, float b, float time
     mBlue = b;
 }
 
+void UserData::setTeam(int id) {
+    team = (id%2 == 0);
+}
+
 void UserData::setCartesian2d(int x, int y, float timeStamp)
 {
     s = (static_cast<float>(x)/CANVAS_SIZE)*2.0f - 1.0f;

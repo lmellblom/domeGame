@@ -18,6 +18,8 @@ public:
     void setCartesian2d(int x, int y, float timeStamp);
     void setColor(float r, float g, float b); 
 	void setTimeStamp(float t);
+
+    void setTeam(int id); // decides team depending on the id
     
     inline float getPhi() { return mPhi; }
     inline float getTheta() { return mTheta; }
@@ -35,6 +37,8 @@ private:
     float mTimeStamp;
     float mRed, mGreen, mBlue;
 	float s, t;
+
+    int team; // if we have to teams to be able to compete. 
 };
 
 #endif

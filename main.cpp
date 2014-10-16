@@ -172,7 +172,7 @@ void myInitFun()
 	for (int i = 0; i < MAX_WEB_USERS; i++) {
 		pingedTime[i] = 0.0f;
 		pingedPosition[i] = glm::vec3(0.f, 0.f, 0.f);
-		pingedIds[i] = -1;
+		pingedIds[i] = 0;
 	}
 	
     // load textures
@@ -334,8 +334,7 @@ void renderSkyBox()
     glUniform1i( Tex_Loc_Box, 0 );
 
 	//**************** PING! *******************
-	
-	GLfloat time = static_cast<float>(sgct::Engine::getTime());
+		GLfloat time = static_cast<float>(sgct::Engine::getTime());
 	// std::cout << "time: " << time << std::endl;
 	glUniform3fv(Pos_Loc, MAX_WEB_USERS, &pingedPosition[0][0]);
 	glUniform1fv(Time_Loc, MAX_WEB_USERS, &pingedTime[0]);
@@ -462,16 +461,13 @@ void renderPings() {
 
 // function to be used when a user sends a ping. 
 void ping(unsigned int id) {
-    fprintf(stderr, "%s %u\n", "ping from the user ", id); // debug
+    //fprintf(stderr, "%s %u\n", "ping from the user ", id); // debug
 
-    // should be possible to make the user (if it is a cirlce), to just be bigger or something
 	pingedTime[id] = static_cast<float>(sgct::Engine::getTime());
 	pingedPosition[id] = sim.GetPlayerDirectionNonQuaternion(id);
 	
 	int i = 0;
-	while (pingedIds[i] != -1) {
-		std::cout << "pingedIds[" << i << "] = " << pingedIds[i] << std::endl;
-
+	while (pingedIds[i] != 0) {
 		if (pingedIds[i] == id) {
 			break;
 		}
@@ -480,10 +476,12 @@ void ping(unsigned int id) {
 	}
 	pingedIds[i] = id;
 
-	/*for (int i = 0; i < MAX_WEB_USERS; i++) {
-		std::cout << "pingedTime[" << i << "] = " << pingedTime[i] << std::endl;
-	}*/
-	
+	/*
+	i = 0;
+	while (pingedIds[i] != -1) {
+		std::cout << "pingedIds[" << i << "] = " << pingedIds[i] << std::endl;
+		i++;
+	} */
 
 }
 

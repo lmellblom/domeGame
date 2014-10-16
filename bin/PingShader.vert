@@ -8,11 +8,13 @@
     uniform mat4 MVP;
      
     out vec2 UV;
+    out vec3 world_Position;
      
     void main()
     {
     	// Output position of the vertex, in clip space : MVP * position
     	gl_Position =  MVP * vec4(vertPositions, 1.0);
+        world_Position = vertPositions;
     	UV = texCoords;
     }
 

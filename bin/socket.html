@@ -18,7 +18,7 @@
 		body {
 			background-color: black;
 			font-family: Josefin Sans; 
-			font-size: 15px;
+			font-size: 18px;
 			margin: center;
 		}
 
@@ -111,10 +111,9 @@
 			color1 = "rgb(" + r + "," + g + "," + b + ")";				
 			color2 = "rgba(" + r + "," + g + "," + b + ",0.5)";
 
-			document.getElementById("colorCircle").style.fill = color1; // sets the color
+			document.getElementById("playerColor").style.backgroundColor = color1; // fill the background with player color
 
 			socket_di.send("rgb " + clientID + " " + r + " " + g + " " + b + "\n"); // sends a extra message to the webserver
-
 		};
 
 		function mouseUp()
@@ -264,6 +263,7 @@
 				{
 					document.getElementById("conn_status").style.display = "block";
 					document.getElementById("conn_status").innerHTML= "Failed to connect";
+
 					connected = 0;
 					showPos(); //redraw
 					
@@ -287,7 +287,7 @@
 						// send information about what color we should have.
 						socket_di.send("rgb " + clientID + " " + r + " " + g + " " + b + "\n");
 
-						document.getElementById("colorCircle").style.fill = color1;
+						document.getElementById("playerColor").style.backgroundColor = color1;
 					}
 				} 
 			}
@@ -310,17 +310,9 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 		<!-- Latest compiled and minified JavaScript -->
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-    	
-	<div class="jumbotron">
-   		<div>
-   			<div class="alert alert-error" id="conn_status" style="display: none;"></div>
-    		<span id="messages"></span> 
-    		<span>
-    			<svg height="30" width="30">
-  					<circle id="colorCircle" cx="15" cy="15" r="10" stroke="black" stroke-width="1" fill="black" />
-				</svg> 
-    		</span>
-    	</div>
+
+	<div id="playerColor" class="jumbotron">
+   		    <div class="alert alert-error" id="conn_status" style="display: none;"></div>
 	</div>
 
     <div class="center container">
@@ -328,6 +320,8 @@
 			Canvas tag not supported!			
 		</canvas>
 	</div>
+
+	<span id="messages"></span> <!-- just for now..-->
 
 	</body>
 </html> 

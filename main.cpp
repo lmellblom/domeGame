@@ -31,6 +31,7 @@ void renderAvatars();
 void renderSkyBox();
 void renderConnectionInfo();
 void renderBalls();
+void renderFootball();
 
 void ping(unsigned int id); // ping from user
 
@@ -56,6 +57,10 @@ GLint Avatar_Tex_Loc = -1;
 
 size_t avatarTex;
 
+size_t footballTex;
+GLint Tex_Loc_Football;
+GLint Matrix_Loc_Football;
+
 size_t textureSkyBox; // for skyBox
 sgct_utils::SGCTBox * myBox = NULL; 
 GLint Matrix_Loc_Box = -1;
@@ -71,6 +76,8 @@ int pingedIds[MAX_WEB_USERS];
 
 Quad avatar;
 Quad ball;
+
+Quad football;
 
 // fetch data from the html site. do different things depending on the input
 void webDecoder(const char * msg, size_t len)
@@ -169,7 +176,8 @@ int main( int argc, char* argv[] )
 void myInitFun()
 {
     avatar.create(0.8f, 0.8f); // how big
-	ball.create(2.0f, 2.0f);
+    //ball.create(2.0f, 2.0f);
+    football.create(2.0f,2.0f); // a football instead of a white ball ;) 
 
 	for (int i = 0; i < MAX_WEB_USERS; i++) {
 		pingedTime[i] = 0.0f;
@@ -181,16 +189,27 @@ void myInitFun()
     sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
 	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
     sgct::TextureManager::instance()->loadTexure(avatarTex, "avatar", "avatar.png", true);
+    sgct::TextureManager::instance()->loadTexure(footballTex, "fotball", "football.png", true); 
 
-    // add shaders
+    // add avatar shader
 	sgct::ShaderManager::instance()->addShaderProgram( "avatar",
 			"avatar.vert",
 			"avatar.frag" );
 	sgct::ShaderManager::instance()->bindShaderProgram( "avatar" );
  
+    // avatar locs
 	Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "MVP" );
     Color_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "FaceColor" );
     Avatar_Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "Tex" );
+
+    // fotball shader
+    sgct::ShaderManager::instance()->addShaderProgram( "fotball",
+            "avatar.vert",
+            "FootballFragShader.frag" );
+    sgct::ShaderManager::instance()->bindShaderProgram( "fotball" );
+
+    Matrix_Loc_Football = sgct::ShaderManager::instance()->getShaderProgram( "fotball").getUniformLocation( "MVP" );
+    Tex_Loc_Football = sgct::ShaderManager::instance()->getShaderProgram( "fotball").getUniformLocation( "Tex" );
 
     // for the skyBox
     sgct::TextureManager::instance()->loadTexure(textureSkyBox, "skyBox", "sky.png", true);
@@ -227,8 +246,8 @@ void myDrawFun()
 
     renderSkyBox();
 	renderAvatars();
-	renderBalls();
-
+	//renderBalls();
+    renderFootball();
     //unbind shader program
     sgct::ShaderManager::instance()->unBindShaderProgram();
 
@@ -396,6 +415,38 @@ void renderAvatars()
     
 	avatar.unbind();
 }
+
+
+void renderFootball() {
+    float radius = DOME_RADIUS;
+    glm::mat4 trans_mat = glm::translate( glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -radius));
+    sgct::ShaderManager::instance()->bindShaderProgram("fotball");
+
+    football.bind();
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(footballTex) );
+
+    btQuaternion quat = sim.GetBallDirection(0);
+    btVector3 axis = quat.getAxis();
+    float angle = quat.getAngle();
+
+    glm::mat4 rot_mat = glm::rotate(glm::mat4(1.0f),
+        glm::degrees(angle),
+        glm::vec3(axis.getX(), axis.getY(), axis.getZ()));
+
+    glm::mat4 footballMat = MVP * rot_mat * trans_mat;
+    glUniformMatrix4fv(Matrix_Loc_Football, 1, GL_FALSE, &footballMat[0][0]);
+    glUniform1i(Tex_Loc_Football, 0);
+
+    football.draw();
+
+    football.unbind();
+
+
+}
+
+
 
 void renderBalls() {
 	float radius = DOME_RADIUS; //Domens radie

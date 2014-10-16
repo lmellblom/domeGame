@@ -334,8 +334,8 @@ void renderSkyBox()
 	} */
 
 	GLfloat time = static_cast<float>(sgct::Engine::getTime());
-	std::cout << "time: " << time << std::endl;
-	glUniform4fv(Pos_Time_Loc, MAX_WEB_USERS, &pingedTime[0]);
+	// std::cout << "time: " << time << std::endl;
+	glUniform1fv(Pos_Time_Loc, MAX_WEB_USERS, &pingedTime[0]);
 	glUniform1f(Curr_Time, time);
 	//**************** END PING *****************/
 
@@ -462,8 +462,11 @@ void ping(unsigned int id) {
 
     // should be possible to make the user (if it is a cirlce), to just be bigger or something
 	pingedTime[id] = static_cast<float>(sgct::Engine::getTime());
-	std::cout << "pingedTime[" << id << "] = " << pingedTime[id] << std::endl;
-
+	
+	/*for (int i = 0; i < MAX_WEB_USERS; i++) {
+		std::cout << "pingedTime[" << i << "] = " << pingedTime[i] << std::endl;
+	}*/
+	
 
 }
 

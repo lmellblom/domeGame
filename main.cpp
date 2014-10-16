@@ -88,6 +88,7 @@ void webDecoder(const char * msg, size_t len)
         {   
             mWebMutex.lock();
             webUsers[id].setCartesian2d(posX, posY, static_cast<float>(sgct::Engine::getTime()));
+            webUsers[id].setTeam(id); // sets the team depending on the id
             mWebMutex.unlock();
 
 			float s = webUsers[id].getS();
@@ -177,6 +178,7 @@ void myInitFun()
 		pingedIds[i] = -1;
 	}
 	
+
     // load textures
     sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
 	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);

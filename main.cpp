@@ -60,10 +60,12 @@ size_t myTextureHandle; // for skyBox
 sgct_utils::SGCTBox * myBox = NULL; 
 GLint Matrix_Loc_Box = -1;
 GLint Tex_Loc_Box; 
-GLint Pos_Time_Loc;
+GLint Time_Loc;
 GLint Curr_Time;
+GLint Pos_Loc;
 
 float pingedTime[MAX_WEB_USERS];
+glm::vec3 pingedPosition[MAX_WEB_USERS];
 Quad avatar;
 Quad ball;
 
@@ -165,9 +167,11 @@ void myInitFun()
     avatar.create(0.8f, 0.8f); // how big
 	ball.create(2.0f, 2.0f);
 
-	for (int i = 0; i < MAX_WEB_USERS; i++)
+	for (int i = 0; i < MAX_WEB_USERS; i++) {
 		pingedTime[i] = 0.0f;
-
+		pingedPosition[i] = glm::vec3(0.f, 0.f, 0.f);
+	}
+	
     // load textures
     sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
 	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
@@ -201,7 +205,8 @@ void myInitFun()
  
     Matrix_Loc_Box = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
     Tex_Loc_Box = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "Tex" );
-	Pos_Time_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("PosTime"); 
+	Time_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("PingTime"); 
+	Pos_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("PingPos");
 	Curr_Time = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("CurrTime");
 
     sgct::ShaderManager::instance()->unBindShaderProgram();
@@ -335,7 +340,8 @@ void renderSkyBox()
 
 	GLfloat time = static_cast<float>(sgct::Engine::getTime());
 	// std::cout << "time: " << time << std::endl;
-	glUniform1fv(Pos_Time_Loc, MAX_WEB_USERS, &pingedTime[0]);
+	glUniform3fv(Pos_Loc, MAX_WEB_USERS, &pingedPosition[0][0]);
+	glUniform1fv(Time_Loc, MAX_WEB_USERS, &pingedTime[0]);
 	glUniform1f(Curr_Time, time);
 	//**************** END PING *****************/
 
@@ -462,7 +468,7 @@ void ping(unsigned int id) {
 
     // should be possible to make the user (if it is a cirlce), to just be bigger or something
 	pingedTime[id] = static_cast<float>(sgct::Engine::getTime());
-	
+	pingedPosition[id] = sim.GetPlayerDirectionNonQuaternion(id);
 	/*for (int i = 0; i < MAX_WEB_USERS; i++) {
 		std::cout << "pingedTime[" << i << "] = " << pingedTime[i] << std::endl;
 	}*/

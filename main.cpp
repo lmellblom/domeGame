@@ -64,10 +64,12 @@ GLint Time_Loc;
 GLint Curr_Time;
 GLint Pos_Loc;
 GLint Pings_Id;
+GLint Ping_Col;
 
 float pingedTime[MAX_WEB_USERS];
 glm::vec3 pingedPosition[MAX_WEB_USERS];
 int pingedIds[MAX_WEB_USERS];
+glm::vec3 pingedColors[MAX_WEB_USERS];
 
 Quad avatar;
 Quad ball;
@@ -175,6 +177,7 @@ void myInitFun()
 		pingedTime[i] = 0.0f;
 		pingedPosition[i] = glm::vec3(0.f, 0.f, 0.f);
 		pingedIds[i] = -1;
+		pingedColors[i] = glm::vec3(0.f, 0.f, 0.f);
 	}
 	
     // load textures
@@ -340,7 +343,9 @@ void renderSkyBox()
 	// std::cout << "time: " << time << std::endl;
 	glUniform3fv(Pos_Loc, MAX_WEB_USERS, &pingedPosition[0][0]);
 	glUniform1fv(Time_Loc, MAX_WEB_USERS, &pingedTime[0]);
-	glUniform1iv(Pings_Id, MAX_WEB_USERS, &pingedIds[0]);
+	//glUniform1iv(Pings_Id, MAX_WEB_USERS, &pingedIds[0]);
+
+
 	glUniform1f(Curr_Time, time);
 	//**************** END PING *****************/
 
@@ -477,6 +482,12 @@ void ping(unsigned int id) {
 		i++;
 	}
 	pingedIds[i] = id;
+
+	color.r = webUsers_copy[i].getRed();
+	color.g = webUsers_copy[i].getGreen();
+	color.b = webUsers_copy[i].getBlue();
+
+	pingedColors[id] = glm::vec3(color.r, color.g, color.b);
 
 	/*
 	i = 0;

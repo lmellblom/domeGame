@@ -177,7 +177,7 @@ int main( int argc, char* argv[] )
 
 void myInitFun()
 {
-    avatar.create(0.8f, 0.8f); // how big
+    avatar.create(2.4f, 2.4f); // how big
 	//ball.create(2.0f, 2.0f);
 	football.create(2.0f, 2.0f); // a football instead of a white ball ;) 
 
@@ -205,6 +205,8 @@ void myInitFun()
 	Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "MVP" );
     Color_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "FaceColor" );
     Avatar_Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "Tex" );
+	Time_Loc = sgct::ShaderManager::instance()->getShaderProgram("avatar").getUniformLocation("PingTime");
+	Curr_Time = sgct::ShaderManager::instance()->getShaderProgram("avatar").getUniformLocation("CurrTime");
 
 	// fotball shader
 	sgct::ShaderManager::instance()->addShaderProgram("fotball",
@@ -226,18 +228,18 @@ void myInitFun()
     glFrontFace(GL_CCW); //our polygon winding is counter clockwise
  
     sgct::ShaderManager::instance()->addShaderProgram( "xform",
-            "PingShader.vert",
-            "PingShader.frag" );
+            "SimpleVertexShader.vert",
+            "SimpleFragmentShader.frag" );
  
     sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
  
     Matrix_Loc_Box = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
     Tex_Loc_Box = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "Tex" );
-	Time_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("PingTime"); 
+	/*Time_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("PingTime"); 
 	Pos_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("PingPos");
 	Curr_Time = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("CurrTime");
 	Pings_Id = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("PingId");
-	Ping_Col = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("PingCol");
+	Ping_Col = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("PingCol"); */
 
     sgct::ShaderManager::instance()->unBindShaderProgram();
 }
@@ -361,13 +363,13 @@ void renderSkyBox()
     glUniform1i( Tex_Loc_Box, 0 );
 
 	//**************** PING! *******************
-		GLfloat time = static_cast<float>(sgct::Engine::getTime());
+		// GLfloat time = static_cast<float>(sgct::Engine::getTime());
 	// std::cout << "time: " << time << std::endl;
-	glUniform3fv(Pos_Loc, MAX_WEB_USERS, &pingedPosition[0][0]);
-	glUniform1fv(Time_Loc, MAX_WEB_USERS, &pingedTime[0]);
+	// glUniform3fv(Pos_Loc, MAX_WEB_USERS, &pingedPosition[0][0]);
+	// glUniform1fv(Time_Loc, MAX_WEB_USERS, &pingedTime[0]);
 	//glUniform1iv(Pings_Id, MAX_WEB_USERS, &pingedIds[0]);
-	glUniform3fv(Ping_Col, MAX_WEB_USERS, &pingedColors[0][0]);
-	glUniform1f(Curr_Time, time);
+	// glUniform3fv(Ping_Col, MAX_WEB_USERS, &pingedColors[0][0]);
+	// glUniform1f(Curr_Time, time);
 	//**************** END PING *****************/
 
     //draw the box (to make the texture on inside)
@@ -403,6 +405,8 @@ void renderAvatars()
 			btQuaternion quat = sim.GetPlayerDirection(i);
 			btVector3 axis = quat.getAxis();
 			float angle = quat.getAngle();
+			float pingTime = pingedTime[i];
+			float currTime = curr_time.getVal();
 
 			glm::mat4 rot_mat = glm::rotate(glm::mat4(1.0f),
 				glm::degrees(angle),
@@ -415,6 +419,8 @@ void renderAvatars()
             color.b = webUsers_copy[i].getBlue();
             glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &avatarMat[0][0]);
             glUniform3f(Color_Loc, color.r, color.g, color.b);
+			glUniform1f(Time_Loc, pingTime);
+			glUniform1f(Curr_Time, currTime);
             glUniform1i( Avatar_Tex_Loc, 0 );
 
             avatar.draw();

@@ -40,7 +40,9 @@ add_executable(${APP_NAME}
 	Ball.h
 	Ball.cpp
 	PlayerObject.h
-	PlayerObject.cpp)
+	PlayerObject.cpp
+	Game.h
+	Game.cpp)
 
 set(TARGET_PATH "${PROJECT_SOURCE_DIR}/bin")
 	

@@ -107,3 +107,11 @@ btQuaternion Simulation::GetBallDirection(int i) {
 	float w = sqrt(up.length2() * dir.length2()) + up.dot(dir);
 	return btQuaternion(xyz.getX(), xyz.getY(), xyz.getZ(), w).normalize();
 }
+
+glm::vec3 Simulation::GetBallDirectionNonQuaternion(int i) {
+	glm::vec3 dir = glm::vec3(ball_list_[i]->GetDirection().getX(), 
+		ball_list_[i]->GetDirection().getY(), 
+		ball_list_[i]->GetDirection().getZ());
+
+	return dir;
+}

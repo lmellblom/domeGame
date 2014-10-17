@@ -9,6 +9,7 @@ All rights reserved.
 #include "UserData.h"
 #include "Quad.h"
 #include "Simulation.h"
+#include "Game.h"
 
 #include <iostream>
 
@@ -46,6 +47,8 @@ sgct::SharedFloat last_time(0.0f);
 sgct::SharedVector<UserData> sharedUserData;
 
 Simulation sim;
+
+Game game; 
 
 bool takeScreenShot = false;
 glm::mat4 MVP;
@@ -254,6 +257,9 @@ void myDrawFun()
 	// renderBalls();
 	renderFootball();
 
+    // check if goal
+    game.update(sim.GetBallDirectionNonQuaternion(0));
+
     //unbind shader program
     sgct::ShaderManager::instance()->unBindShaderProgram();
 
@@ -380,6 +386,10 @@ void renderSkyBox()
     glDisable( GL_CULL_FACE );
     glDisable( GL_DEPTH_TEST );
 
+}
+
+void renderGoal(){
+    game.getGoalCoords(); // köra quad av den kanske? normaliserad.. 
 }
 
 // renderar den fina figuren som visas. 

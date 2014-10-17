@@ -4,6 +4,7 @@
 
     uniform sampler2D Tex;
     uniform vec3 PingPos[MAX_WEB_USERS];
+    uniform vec3 PingCol[MAX_WEB_USERS];
     uniform float PingTime[MAX_WEB_USERS];
     //uniform int PingId[MAX_WEB_USERS];
     uniform float CurrTime;
@@ -26,81 +27,100 @@
         vec3 normalizedWorldPos;
         float dist;
         bool pingedCheck = true;
-        
+        vec3 pingColor;
+
         // MAX 18 PLAYERS
         for(int i = 1; i < 18; i++) {            
             switch(i){
                 case 1:
                     time = (CurrTime - PingTime[1])*speed;
-                    normalizedPos = normalize(PingPos[1]);                                  
+                    normalizedPos = normalize(PingPos[1]);   
+                    pingColor = PingCol[1];                               
                     break;
                 case 2:
                     time = (CurrTime - PingTime[2])*speed;
-                    normalizedPos = normalize(PingPos[2]);                                  
+                    normalizedPos = normalize(PingPos[2]); 
+                    pingColor = PingCol[2];                                 
                     break;
                 case 3:
                     time = (CurrTime - PingTime[3])*speed;
-                    normalizedPos = normalize(PingPos[3]);                                  
+                    normalizedPos = normalize(PingPos[3]); 
+                    pingColor = PingCol[3];                                 
                     break;
                 case 4:
                     time = (CurrTime - PingTime[4])*speed;
-                    normalizedPos = normalize(PingPos[4]);                                  
+                    normalizedPos = normalize(PingPos[4]); 
+                    pingColor = PingCol[4];                                 
                     break;
                 case 5:
                     time = (CurrTime - PingTime[5])*speed;
-                    normalizedPos = normalize(PingPos[5]);                                  
+                    normalizedPos = normalize(PingPos[5]); 
+                    pingColor = PingCol[5];                                 
                     break;
                 case 6:
                     time = (CurrTime - PingTime[6])*speed;
-                    normalizedPos = normalize(PingPos[6]);                                  
+                    normalizedPos = normalize(PingPos[6]); 
+                    pingColor = PingCol[6];                                 
                     break;
                 case 7:
                     time = (CurrTime - PingTime[7])*speed;
-                    normalizedPos = normalize(PingPos[7]);                                  
+                    normalizedPos = normalize(PingPos[7]); 
+                    pingColor = PingCol[7];                                        
                     break;
                 case 8:
                     time = (CurrTime - PingTime[8])*speed;
-                    normalizedPos = normalize(PingPos[8]);                                  
+                    normalizedPos = normalize(PingPos[8]); 
+                    pingColor = PingCol[8];                                 
                     break;
                 case 9:
                     time = (CurrTime - PingTime[9])*speed;
-                    normalizedPos = normalize(PingPos[9]);                                  
+                    normalizedPos = normalize(PingPos[9]); 
+                    pingColor = PingCol[9];                                 
                     break;
                 case 10:
                     time = (CurrTime - PingTime[10])*speed;
-                    normalizedPos = normalize(PingPos[10]);                                  
+                    normalizedPos = normalize(PingPos[10]); 
+                    pingColor = PingCol[10];                                 
                     break;
                 case 11:
                     time = (CurrTime - PingTime[11])*speed;
-                    normalizedPos = normalize(PingPos[11]);                                  
+                    normalizedPos = normalize(PingPos[11]); 
+                    pingColor = PingCol[11];                                 
                     break;
                 case 12:
                     time = (CurrTime - PingTime[12])*speed;
-                    normalizedPos = normalize(PingPos[12]);                                  
+                    normalizedPos = normalize(PingPos[12]);
+                    pingColor = PingCol[12];                                  
                     break;
                 case 13:
                     time = (CurrTime - PingTime[13])*speed;
-                    normalizedPos = normalize(PingPos[13]);                                  
+                    normalizedPos = normalize(PingPos[13]); 
+                    pingColor = PingCol[13];                                 
                     break;
                 case 14:
                     time = (CurrTime - PingTime[14])*speed;
-                    normalizedPos = normalize(PingPos[14]);                                  
+                    normalizedPos = normalize(PingPos[14]);
+                    pingColor = PingCol[14];                                  
                     break;
                 case 15:
                     time = (CurrTime - PingTime[15])*speed;
-                    normalizedPos = normalize(PingPos[15]);                                  
+                    normalizedPos = normalize(PingPos[15]); 
+                    pingColor = PingCol[15];                                 
                     break;
                 case 16:
                     time = (CurrTime - PingTime[16])*speed;
-                    normalizedPos = normalize(PingPos[16]);                                  
+                    normalizedPos = normalize(PingPos[16]); 
+                    pingColor = PingCol[16];                                 
                     break;
                 case 17:
                     time = (CurrTime - PingTime[17])*speed;
-                    normalizedPos = normalize(PingPos[17]);                                  
+                    normalizedPos = normalize(PingPos[17]);
+                    pingColor = PingCol[17];                                  
                     break;
                 case 18:
                     time = (CurrTime - PingTime[18])*speed;
-                    normalizedPos = normalize(PingPos[18]);                                  
+                    normalizedPos = normalize(PingPos[18]); 
+                    pingColor = PingCol[18];                                 
                     break;
                 default:
                     pingedCheck = false;
@@ -112,7 +132,7 @@
                 dist = length(normalizedWorldPos - normalizedPos);
 
                 if ( (dist > 0.03*time) && (dist < 0.04*time) && (dist < max_radius) ) {
-                      color = vec4(1.0, 1.0, 1.0, 1.0);
+                      color = vec4(pingColor.x, pingColor.y, pingColor.z, 1.0);
                 } 
             }           
             

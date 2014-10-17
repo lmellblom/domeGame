@@ -217,6 +217,7 @@ void myInitFun()
 	Pos_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("PingPos");
 	Curr_Time = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("CurrTime");
 	Pings_Id = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("PingId");
+	Ping_Col = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("PingCol");
 
     sgct::ShaderManager::instance()->unBindShaderProgram();
 }
@@ -344,8 +345,7 @@ void renderSkyBox()
 	glUniform3fv(Pos_Loc, MAX_WEB_USERS, &pingedPosition[0][0]);
 	glUniform1fv(Time_Loc, MAX_WEB_USERS, &pingedTime[0]);
 	//glUniform1iv(Pings_Id, MAX_WEB_USERS, &pingedIds[0]);
-
-
+	glUniform3fv(Ping_Col, MAX_WEB_USERS, &pingedColors[0][0]);
 	glUniform1f(Curr_Time, time);
 	//**************** END PING *****************/
 
@@ -483,9 +483,10 @@ void ping(unsigned int id) {
 	}
 	pingedIds[i] = id;
 
-	color.r = webUsers_copy[i].getRed();
-	color.g = webUsers_copy[i].getGreen();
-	color.b = webUsers_copy[i].getBlue();
+	glm::vec3 color;
+	color.r = webUsers_copy[id].getRed();
+	color.g = webUsers_copy[id].getGreen();
+	color.b = webUsers_copy[id].getBlue();
 
 	pingedColors[id] = glm::vec3(color.r, color.g, color.b);
 

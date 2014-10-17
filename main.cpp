@@ -69,10 +69,12 @@ GLint Time_Loc;
 GLint Curr_Time;
 GLint Pos_Loc;
 GLint Pings_Id;
+GLint Ping_Col;
 
 float pingedTime[MAX_WEB_USERS];
 glm::vec3 pingedPosition[MAX_WEB_USERS];
 int pingedIds[MAX_WEB_USERS];
+glm::vec3 pingedColors[MAX_WEB_USERS];
 
 Quad avatar;
 Quad ball;
@@ -183,6 +185,7 @@ void myInitFun()
 		pingedTime[i] = 0.0f;
 		pingedPosition[i] = glm::vec3(0.f, 0.f, 0.f);
 		pingedIds[i] = -1;
+		pingedColors[i] = glm::vec3(0.f, 0.f, 0.f);
 	}
 	
 
@@ -234,6 +237,7 @@ void myInitFun()
 	Pos_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("PingPos");
 	Curr_Time = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("CurrTime");
 	Pings_Id = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("PingId");
+	Ping_Col = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("PingCol");
 
     sgct::ShaderManager::instance()->unBindShaderProgram();
 }
@@ -361,7 +365,8 @@ void renderSkyBox()
 	// std::cout << "time: " << time << std::endl;
 	glUniform3fv(Pos_Loc, MAX_WEB_USERS, &pingedPosition[0][0]);
 	glUniform1fv(Time_Loc, MAX_WEB_USERS, &pingedTime[0]);
-	glUniform1iv(Pings_Id, MAX_WEB_USERS, &pingedIds[0]);
+	//glUniform1iv(Pings_Id, MAX_WEB_USERS, &pingedIds[0]);
+	glUniform3fv(Ping_Col, MAX_WEB_USERS, &pingedColors[0][0]);
 	glUniform1f(Curr_Time, time);
 	//**************** END PING *****************/
 
@@ -526,6 +531,13 @@ void ping(unsigned int id) {
 		i++;
 	}
 	pingedIds[i] = id;
+
+	glm::vec3 color;
+	color.r = webUsers_copy[id].getRed();
+	color.g = webUsers_copy[id].getGreen();
+	color.b = webUsers_copy[id].getBlue();
+
+	pingedColors[id] = glm::vec3(color.r, color.g, color.b);
 
 	/*
 	i = 0;

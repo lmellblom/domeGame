@@ -2,7 +2,7 @@
 #include <iostream>
 
 PlayerObject::PlayerObject(btDiscreteDynamicsWorld* world, btVector3 pos)
-: Ball(world, pos, 0.35, 1){
+: Ball(world, pos, 0.2, 1){
 }
 
 PlayerObject::~PlayerObject()  {

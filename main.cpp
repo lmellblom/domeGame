@@ -70,6 +70,7 @@ GLint Curr_Time;
 GLint Pos_Loc;
 GLint Pings_Id;
 GLint Ping_Col;
+GLint Team_Loc;
 
 float pingedTime[MAX_WEB_USERS];
 glm::vec3 pingedPosition[MAX_WEB_USERS];
@@ -183,7 +184,6 @@ void myInitFun()
 		pingedTime[i] = 0.0f;
 		pingedPosition[i] = glm::vec3(0.f, 0.f, 0.f);
 	}
-	
 
     // load textures
     sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
@@ -203,6 +203,7 @@ void myInitFun()
     Avatar_Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "Tex" );
 	Time_Loc = sgct::ShaderManager::instance()->getShaderProgram("avatar").getUniformLocation("PingTime");
 	Curr_Time = sgct::ShaderManager::instance()->getShaderProgram("avatar").getUniformLocation("CurrTime");
+	Team_Loc = sgct::ShaderManager::instance()->getShaderProgram("avatar").getUniformLocation("Team");
 
 	// fotball shader
 	sgct::ShaderManager::instance()->addShaderProgram("fotball",
@@ -388,6 +389,7 @@ void renderAvatars()
 			float angle = quat.getAngle();
 			float pingTime = pingedTime[i];
 			float currTime = curr_time.getVal();
+			int team = webUsers[i].getTeam();
 
 			glm::mat4 rot_mat = glm::rotate(glm::mat4(1.0f),
 				glm::degrees(angle),
@@ -402,6 +404,7 @@ void renderAvatars()
             glUniform3f(Color_Loc, color.r, color.g, color.b);
 			glUniform1f(Time_Loc, pingTime);
 			glUniform1f(Curr_Time, currTime);
+			glUniform1i(Team_Loc, team);
             glUniform1i( Avatar_Tex_Loc, 0 );
 
             avatar.draw();

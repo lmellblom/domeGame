@@ -33,6 +33,7 @@ void renderSkyBox();
 void renderConnectionInfo();
 void renderBalls();
 void renderFootball();
+void renderGoal();
 
 void ping(unsigned int id); // ping from user
 
@@ -181,7 +182,7 @@ int main( int argc, char* argv[] )
 void myInitFun()
 {
     avatar.create(0.8f, 0.8f); // how big
-	//ball.create(2.0f, 2.0f);
+	ball.create(2.0f, 2.0f);
 	football.create(2.0f, 2.0f); // a football instead of a white ball ;) 
 
 	for (int i = 0; i < MAX_WEB_USERS; i++) {
@@ -256,6 +257,7 @@ void myDrawFun()
 	renderAvatars();
 	// renderBalls();
 	renderFootball();
+    renderGoal();
 
     // check if goal
     game.update(sim.GetBallDirectionNonQuaternion(0));
@@ -389,7 +391,36 @@ void renderSkyBox()
 }
 
 void renderGoal(){
-    game.getGoalCoords(); // köra quad av den kanske? normaliserad.. 
+
+    float radius = DOME_RADIUS; //Domens radie
+
+    glm::mat4 trans_mat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -radius));
+    glm::vec3 color;
+
+    sgct::ShaderManager::instance()->bindShaderProgram("avatar");
+    ball.bind();
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(avatarTex));
+
+    //should really look over the rendering
+    btQuaternion quat = game.getGoalQuaternion();
+    btVector3 axis = quat.getAxis();
+    float angle = quat.getAngle();
+
+    glm::mat4 rot_mat = glm::rotate(glm::mat4(1.0f),
+        glm::degrees(angle),
+        glm::vec3(axis.getX(), axis.getY(), axis.getZ()));
+
+    glm::mat4 avatarMat = MVP * rot_mat * trans_mat;
+
+    glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &avatarMat[0][0]);
+    glUniform3f(Color_Loc, 0.0, 0.0, 0.0); // color on the goal
+    glUniform1i(Avatar_Tex_Loc, 0);
+
+    ball.draw();
+
+    ball.unbind();
 }
 
 // renderar den fina figuren som visas. 

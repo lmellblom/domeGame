@@ -6,19 +6,14 @@
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 		<!-- FONTS-->
 		<link href='http://fonts.googleapis.com/css?family=Josefin+Sans' rel='stylesheet' type='text/css'>
-		<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300' rel='stylesheet' type='text/css'>
-		<!-- Bootstrap -->
-		<!-- Latest compiled and minified CSS -->
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-		<!-- Optional theme -->
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
 		<!-- our own css-->
 		<style>
 		body {
 			background-color: black;
-			font-family: Josefin Sans; 
+			font-family: Josefin Sans, Georgia, serif; 
 			font-size: 18px;
-			margin: center;
+			margin: 0px;
+			text-align: center;
 		}
 
 		.jumbotron{
@@ -30,10 +25,17 @@
 			background-color:#000000;
 
 		}
-		.alert-error {
+		#conn_status{
   			background-color: #f2dede;
   			border-color: #eed3d7;
   			color: #b94a48;
+  			padding:20px 10px 10px 10px;
+		}
+
+		#playerColor{
+			min-height: 100px;
+			margin-bottom: 20px;
+
 		}
 
 		.center{
@@ -304,23 +306,18 @@
     </head>
 
     <body onload="init();">
-
-	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-		<!-- Latest compiled and minified JavaScript -->
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-
 	<div id="playerColor" class="jumbotron">
-   		    <div class="alert alert-error" id="conn_status" style="display: none;"></div>
+   		    <div id="conn_status" style="display: none;"></div>
+
 	</div>
 
-    <div class="center container">
+    <div class="center">
        	<canvas width="500" height="600" id="touch_canvas">
 			Canvas tag not supported!			
 		</canvas>
 	</div>
-
 	<span id="messages"></span> <!-- just for now..-->
+
 
 	</body>
 </html> 

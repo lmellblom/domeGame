@@ -6,6 +6,7 @@ All rights reserved.
 
 #ifndef _USER_DATA_
 #define _USER_DATA_
+#include <btBulletDynamicsCommon.h>
 
 class UserData
 {
@@ -18,6 +19,8 @@ public:
     void setCartesian2d(int x, int y, float timeStamp);
     void setColor(float r, float g, float b); 
 	void setTimeStamp(float t);
+
+    btVector3 calculatePosition();
 
     void setTeam(int id); // decides team depending on the id
     int getTeam();

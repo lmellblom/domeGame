@@ -48,6 +48,7 @@ sgct::SharedFloat last_time(0.0f);
 sgct::SharedVector<UserData> sharedUserData;
 
 Simulation sim;
+Simulation sim_copy; 
 
 Game game; 
 
@@ -102,12 +103,7 @@ void webDecoder(const char * msg, size_t len)
             webUsers[id].setTeam(id); // sets the team depending on the id
             mWebMutex.unlock();
 
-			float s = webUsers[id].getS();
-			float t = -webUsers[id].getT();
-			float h = sqrt(1 - s*s - t*t);
-			btVector3 pos(webUsers[id].getS(), h, -webUsers[id].getT());
-			pos.normalize();
-			pos *= 7.4;
+            btVector3 pos = webUsers[id].calculatePosition(); 
 			//calculate position vector
 			sim.SetPlayerTarget(id, pos);
         }
@@ -167,6 +163,8 @@ int main( int argc, char* argv[] )
         webserver.start(80);
     }
 
+    sim_copy = sim; 
+
 	// Main loop
 	gEngine->render();
 
@@ -181,7 +179,7 @@ int main( int argc, char* argv[] )
 void myInitFun()
 {
 
-	ball.create(2.0f, 2.0f);
+	//ball.create(2.0f, 2.0f);
     avatar.create(2.4f, 2.4f); // how big
 	football.create(2.0f, 2.0f); // a football instead of a white ball ;) 
 
@@ -252,10 +250,10 @@ void myDrawFun()
 	renderAvatars();
 	// renderBalls();
 	renderFootball();
-    renderGoal();
+    //renderGoal();
 
     // check if goal
-    game.update(sim.GetBallDirectionNonQuaternion(0));
+    //game.update(sim.GetBallDirectionNonQuaternion(0));
 
     //unbind shader program
     sgct::ShaderManager::instance()->unBindShaderProgram();
@@ -297,14 +295,21 @@ void myPostSyncFun()
             takeScreenShot = false;
         }
     }
+    
 
 	sim.Step(curr_time.getVal() - last_time.getVal());
 	last_time.setVal(curr_time.getVal());
-	for (unsigned int i = 1; i<MAX_WEB_USERS; i++)
+	
+	for (unsigned int i = 1; i<MAX_WEB_USERS; i++) {
+	    btVector3 pos = webUsers_copy[i].calculatePosition(); 
+		//calculate position vector
+		sim.SetPlayerTarget(i, pos);
+
 		if (curr_time.getVal() - webUsers_copy[i].getTimeStamp() > DISCONNECT_TIME)
 		{
 			sim.RemovePlayer(i);
 		}
+	}
 }
 
 void myEncodeFun()
@@ -426,6 +431,8 @@ void renderAvatars()
     for(unsigned int i=1; i<MAX_WEB_USERS; i++)
         if( sim.PlayerExists(i) )
 		{	
+			fprintf(stderr, "%s %u\n", "render user:  ", i ); // skriver inte ut ngt för slaven..
+
 			btQuaternion quat = sim.GetPlayerDirection(i);
 			btVector3 axis = quat.getAxis();
 			float angle = quat.getAngle();

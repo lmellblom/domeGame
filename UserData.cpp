@@ -11,6 +11,7 @@ All rights reserved.
 #define CANVAS_SIZE 500.0f
 #define DEG90_TO_RAD 1.570796327f
 #define DEG180_TO_RAD 3.141592654f
+#define DOME_RADIUS 7.4f
 
 UserData::UserData()
 {
@@ -50,6 +51,14 @@ void UserData::setTeam(int id) {
 
 int UserData::getTeam() {
     return team; 
+}
+
+btVector3 UserData::calculatePosition(){
+    float h = sqrt(1 - s*s - t*t);
+    btVector3 pos(s, h, -t);
+    pos.normalize();
+    pos *= DOME_RADIUS;
+    return pos;
 }
 
 void UserData::setCartesian2d(int x, int y, float timeStamp)

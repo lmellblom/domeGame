@@ -19,6 +19,8 @@ public:
     void setCartesian2d(int x, int y, float timeStamp);
     void setColor(float r, float g, float b); 
 	void setTimeStamp(float t);
+    void setPlayerDirection(btQuaternion dir); 
+
 
     btVector3 calculatePosition();
 
@@ -34,13 +36,16 @@ public:
     inline float getBlue() { return mBlue; }
 	inline float getS() { return s; }
 	inline float getT() { return t; }
-    
+    inline btQuaternion getPlayerDirection() {return direction; }
+    bool exists; 
+
 		
 private:
 	float mTheta, mPhi;
     float mTimeStamp;
     float mRed, mGreen, mBlue;
 	float s, t;
+    btQuaternion direction; 
 
     int team; // if we have to teams to be able to compete. 
 };

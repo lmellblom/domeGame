@@ -61,6 +61,10 @@ btVector3 UserData::calculatePosition(){
     return pos;
 }
 
+void UserData::setPlayerDirection(btQuaternion dir){
+    direction = dir; 
+}
+
 void UserData::setCartesian2d(int x, int y, float timeStamp)
 {
     s = (static_cast<float>(x)/CANVAS_SIZE)*2.0f - 1.0f;

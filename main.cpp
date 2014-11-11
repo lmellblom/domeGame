@@ -106,6 +106,7 @@ void webDecoder(const char * msg, size_t len)
             btVector3 pos = webUsers[id].calculatePosition(); 
 			//calculate position vector
 			sim.SetPlayerTarget(id, pos);
+			webUsers[id].exists = true;
         }
     }
     
@@ -263,12 +264,34 @@ void myDrawFun()
 }
 
 void myPreSyncFun()
-{
+{	const float DISCONNECT_TIME = 5.0f;
+
 	//set the time only on the master
 	if( gEngine->isMaster() )
 	{
+		
 		//get the time in seconds
 		curr_time.setVal( static_cast<float>(sgct::Engine::getTime()) );
+
+		// simulation on master
+		sim.Step(curr_time.getVal() - last_time.getVal());
+		last_time.setVal(curr_time.getVal());
+
+		for (unsigned int i = 1; i<MAX_WEB_USERS; i++) {
+		    //btVector3 pos = webUsers_copy[i].calculatePosition(); 
+			//calculate position vector
+			//sim.SetPlayerTarget(i, pos);
+
+			btQuaternion direction = sim.GetPlayerDirection(i); 
+			webUsers[i].setPlayerDirection(direction);
+
+			if (curr_time.getVal() - webUsers[i].getTimeStamp() > DISCONNECT_TIME)
+			{
+				sim.RemovePlayer(i);
+				webUsers[i].exists = false; 
+			}
+		}
+
         
         //copy webusers to rendering copy
         mWebMutex.lock();
@@ -297,19 +320,19 @@ void myPostSyncFun()
     }
     
 
-	sim.Step(curr_time.getVal() - last_time.getVal());
-	last_time.setVal(curr_time.getVal());
-	
+	//sim.Step(curr_time.getVal() - last_time.getVal());
+	//last_time.setVal(curr_time.getVal());
+/*
 	for (unsigned int i = 1; i<MAX_WEB_USERS; i++) {
-	    btVector3 pos = webUsers_copy[i].calculatePosition(); 
+	    //btVector3 pos = webUsers_copy[i].calculatePosition(); 
 		//calculate position vector
-		sim.SetPlayerTarget(i, pos);
+		//sim.SetPlayerTarget(i, pos);
 
 		if (curr_time.getVal() - webUsers_copy[i].getTimeStamp() > DISCONNECT_TIME)
 		{
 			sim.RemovePlayer(i);
 		}
-	}
+	}*/
 }
 
 void myEncodeFun()
@@ -429,16 +452,16 @@ void renderAvatars()
     
 	//should really look over the rendering, maybe use more threads??
     for(unsigned int i=1; i<MAX_WEB_USERS; i++)
-        if( sim.PlayerExists(i) )
+        if( webUsers[i].exists) //sim.PlayerExists(i) ) // does it exist
 		{	
 			fprintf(stderr, "%s %u\n", "render user:  ", i ); // skriver inte ut ngt för slaven..
 
-			btQuaternion quat = sim.GetPlayerDirection(i);
+			btQuaternion quat = webUsers_copy[i].getPlayerDirection();//sim.GetPlayerDirection(i);
 			btVector3 axis = quat.getAxis();
 			float angle = quat.getAngle();
 			float pingTime = pingedTime[i];
 			float currTime = curr_time.getVal();
-			int team = webUsers[i].getTeam();
+			int team = webUsers_copy[i].getTeam();
 
 			glm::mat4 rot_mat = glm::rotate(glm::mat4(1.0f),
 				glm::degrees(angle),

@@ -50,6 +50,7 @@ tthread::mutex mWebMutex; //used for thread exclusive data access (prevent corru
 sgct::SharedFloat curr_time(0.0f);
 sgct::SharedFloat last_time(0.0f);
 sgct::SharedVector<UserData> sharedUserData;
+sgct::SharedObject<btQuaternion> sharedPos; // btQuartnions.. 
 
 bool takeScreenShot = false;
 glm::mat4 MVP;
@@ -109,6 +110,7 @@ void webDecoder(const char * msg, size_t len)
 			//calculate position vector
 			sim.SetPlayerTarget(id, pos); // creates a new player if it doesnt exist, else set target position
 			webUsers[id].exists = true;
+
         }
     }
     
@@ -128,6 +130,7 @@ void webDecoder(const char * msg, size_t len)
 
     else if (sscanf(msg, "ping %u\n", &id) == 1){
         ping(id);
+        // kommer bara komma in via master.. körs ej på noderna. 
     }
 
     else {
@@ -201,7 +204,7 @@ void myDrawFun()
 
     renderSkyBox();
 	renderAvatars();
-	//renderFootball();
+	renderFootball();
 
     //unbind shader program
     sgct::ShaderManager::instance()->unBindShaderProgram();
@@ -224,6 +227,8 @@ void myPreSyncFun()
 		// simulation on master
 		sim.Step(curr_time.getVal() - last_time.getVal());
 		last_time.setVal(curr_time.getVal());
+
+		sharedPos.setVal(sim.GetBallDirection(0)); 
 
 		for (unsigned int i = 1; i<MAX_WEB_USERS; i++) {
 		    btVector3 pos = webUsers[i].calculatePosition(); 
@@ -274,12 +279,16 @@ void myEncodeFun()
 {
 	sgct::SharedData::instance()->writeFloat( &curr_time );
     sgct::SharedData::instance()->writeVector(&sharedUserData);
+    sgct::SharedData::instance()->writeObj(&sharedPos);
+
 }
 
 void myDecodeFun()
 {
 	sgct::SharedData::instance()->readFloat( &curr_time );
     sgct::SharedData::instance()->readVector(&sharedUserData);
+    sgct::SharedData::instance()->readObj(&sharedPos);
+
 }
 
 void myCleanUpFun()
@@ -360,8 +369,6 @@ void renderAvatars()
     for(unsigned int i=1; i<MAX_WEB_USERS; i++)
         if( webUsers_copy[i].exists) //sim.PlayerExists(i) ) // does it exist
 		{	
-			fprintf(stderr, "%s %u\n", "render user:  ", i ); // skriver inte ut ngt för slaven..
-
 			btQuaternion quat = webUsers_copy[i].getPlayerDirection();//sim.GetPlayerDirection(i);
 			btVector3 axis = quat.getAxis();
 			float angle = quat.getAngle();
@@ -402,7 +409,7 @@ void renderFootball() {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(footballTex));
 	
-	btQuaternion quat = sim.GetBallDirection(0);
+	btQuaternion quat = sharedPos.getVal();//sim.GetBallDirection(0);
 	btVector3 axis = quat.getAxis();
 	float angle = quat.getAngle();
 	
@@ -433,7 +440,7 @@ void renderPings() {
 	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(avatarTex));
 
 	//should really look over the rendering
-	btQuaternion quat = sim.GetBallDirection(0);
+	btQuaternion quat = sharedPos.getVal();//.GetBallDirection(0); //ist för sim
 	btVector3 axis = quat.getAxis();
 	float angle = quat.getAngle();
 
@@ -458,6 +465,7 @@ void ping(unsigned int id) {
 
 	pingedTime[id] = static_cast<float>(sgct::Engine::getTime());
 	pingedPosition[id] = sim.GetPlayerDirectionNonQuaternion(id);
+	// pinget funkar fortfarande inte för de olika noderna.. 
 
 }
 

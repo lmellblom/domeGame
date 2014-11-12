@@ -28,7 +28,7 @@ PROJECT(${APP_NAME})
 
 
 add_executable(${APP_NAME}
-	main.cpp
+	main2.cpp
 	Webserver.h
 	Webserver.cpp
 	UserData.h

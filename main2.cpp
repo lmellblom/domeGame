@@ -9,7 +9,6 @@ All rights reserved.
 #include "UserData.h"
 #include "Quad.h"
 #include "Simulation.h"
-#include "Game.h"
 
 #include <iostream>
 
@@ -18,7 +17,7 @@ All rights reserved.
 
 sgct::Engine * gEngine;
 
-
+// for SGCT
 void myInitFun();
 void myDrawFun();
 void myPreSyncFun();
@@ -28,6 +27,8 @@ void myDecodeFun();
 void myCleanUpFun();
 void keyCallback(int key, int action);
 
+// rendering functions
+void loadTexturesAndStuff();
 void renderAvatars();
 void renderSkyBox();
 void renderConnectionInfo();
@@ -35,22 +36,20 @@ void renderBalls();
 void renderFootball();
 void renderGoal();
 
+// ping
 void ping(unsigned int id); // ping from user
 
+// for the webserver and userdata
 Webserver webserver;
 UserData webUsers[MAX_WEB_USERS];
 std::vector<UserData> webUsers_copy;
 
 tthread::mutex mWebMutex; //used for thread exclusive data access (prevent corruption)
 
+// shared variables
 sgct::SharedFloat curr_time(0.0f);
 sgct::SharedFloat last_time(0.0f);
 sgct::SharedVector<UserData> sharedUserData;
-
-Simulation sim;
-Simulation sim_copy; 
-
-Game game; 
 
 bool takeScreenShot = false;
 glm::mat4 MVP;
@@ -84,6 +83,9 @@ Quad avatar;
 Quad ball;
 Quad football;
 
+Simulation sim;
+
+
 // fetch data from the html site. do different things depending on the input
 void webDecoder(const char * msg, size_t len)
 {
@@ -105,7 +107,7 @@ void webDecoder(const char * msg, size_t len)
 
             btVector3 pos = webUsers[id].calculatePosition(); 
 			//calculate position vector
-			sim.SetPlayerTarget(id, pos);
+			sim.SetPlayerTarget(id, pos); // creates a new player if it doesnt exist, else set target position
 			webUsers[id].exists = true;
         }
     }
@@ -133,6 +135,7 @@ void webDecoder(const char * msg, size_t len)
     }
 
 }
+
 
 int main( int argc, char* argv[] )
 {
@@ -164,7 +167,6 @@ int main( int argc, char* argv[] )
         webserver.start(80);
     }
 
-
 	// Main loop
 	gEngine->render();
 
@@ -176,11 +178,8 @@ int main( int argc, char* argv[] )
 	
 }
 
-void myInitFun()
-{
-
-	//ball.create(2.0f, 2.0f);
-    avatar.create(2.4f, 2.4f); // how big
+void myInitFun() {
+	avatar.create(2.4f, 2.4f); // how big
 	football.create(2.0f, 2.0f); // a football instead of a white ball ;) 
 
 	for (int i = 0; i < MAX_WEB_USERS; i++) {
@@ -188,55 +187,9 @@ void myInitFun()
 		pingedPosition[i] = glm::vec3(0.f, 0.f, 0.f);
 	}
 
-    // load textures
-    sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
-	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-    sgct::TextureManager::instance()->loadTexure(avatarTex, "avatar", "avatar.png", true);
-	sgct::TextureManager::instance()->loadTexure(footballTex, "fotball", "football.png", true);
+	loadTexturesAndStuff(); 
 
-    // add shaders
-	sgct::ShaderManager::instance()->addShaderProgram( "avatar",
-			"avatar.vert",
-			"avatar.frag" );
-	sgct::ShaderManager::instance()->bindShaderProgram( "avatar" );
-	
-	// avatar locs
-	Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "MVP" );
-    Color_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "FaceColor" );
-    Avatar_Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "Tex" );
-	Time_Loc = sgct::ShaderManager::instance()->getShaderProgram("avatar").getUniformLocation("PingTime");
-	Curr_Time = sgct::ShaderManager::instance()->getShaderProgram("avatar").getUniformLocation("CurrTime");
-	Team_Loc = sgct::ShaderManager::instance()->getShaderProgram("avatar").getUniformLocation("Team");
 
-	// fotball shader
-	sgct::ShaderManager::instance()->addShaderProgram("fotball",
-		"avatar.vert",
-		"FootballFragShader.frag");
-	sgct::ShaderManager::instance()->bindShaderProgram("fotball");
-	
-	Matrix_Loc_Football = sgct::ShaderManager::instance()->getShaderProgram("fotball").getUniformLocation("MVP");
-	Tex_Loc_Football = sgct::ShaderManager::instance()->getShaderProgram("fotball").getUniformLocation("Tex");
-
-    // for the skyBox
-    sgct::TextureManager::instance()->loadTexure(textureSkyBox, "skyBox", "sky.png", true);
-
-    // add the box
-    myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::SkyBox);
-
-    //Set up backface culling
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW); //our polygon winding is counter clockwise
- 
-    sgct::ShaderManager::instance()->addShaderProgram( "xform",
-            "SimpleVertexShader.vert",
-            "SimpleFragmentShader.frag" );
- 
-    sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
- 
-    Matrix_Loc_Box = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
-    Tex_Loc_Box = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "Tex" );
-
-    sgct::ShaderManager::instance()->unBindShaderProgram();
 }
 
 void myDrawFun()
@@ -248,12 +201,7 @@ void myDrawFun()
 
     renderSkyBox();
 	renderAvatars();
-	// renderBalls();
-	renderFootball();
-    //renderGoal();
-
-    // check if goal
-    //game.update(sim.GetBallDirectionNonQuaternion(0));
+	//renderFootball();
 
     //unbind shader program
     sgct::ShaderManager::instance()->unBindShaderProgram();
@@ -261,6 +209,7 @@ void myDrawFun()
     glDisable(GL_BLEND);
 
 }
+
 
 void myPreSyncFun()
 {	const float DISCONNECT_TIME = 5.0f;
@@ -271,15 +220,15 @@ void myPreSyncFun()
 		
 		//get the time in seconds
 		curr_time.setVal( static_cast<float>(sgct::Engine::getTime()) );
-/*
+
 		// simulation on master
 		sim.Step(curr_time.getVal() - last_time.getVal());
 		last_time.setVal(curr_time.getVal());
 
 		for (unsigned int i = 1; i<MAX_WEB_USERS; i++) {
-		    //btVector3 pos = webUsers_copy[i].calculatePosition(); 
+		    btVector3 pos = webUsers[i].calculatePosition(); 
 			//calculate position vector
-			//sim.SetPlayerTarget(i, pos);
+			sim.SetPlayerTarget(i, pos);
 
 			btQuaternion direction = sim.GetPlayerDirection(i); 
 			webUsers[i].setPlayerDirection(direction);
@@ -291,7 +240,7 @@ void myPreSyncFun()
 			}
 		}
 
-        */
+        
         //copy webusers to rendering copy
         mWebMutex.lock();
         webUsers_copy.assign(webUsers, webUsers + MAX_WEB_USERS);
@@ -318,23 +267,8 @@ void myPostSyncFun()
         }
     }
     
-
-	sim.Step(curr_time.getVal() - last_time.getVal());
-	last_time.setVal(curr_time.getVal());
-
-	for (unsigned int i = 1; i<MAX_WEB_USERS; i++) {
-	    btVector3 pos = webUsers_copy[i].calculatePosition(); 
-		//calculate position vector
-		sim.SetPlayerTarget(i, pos);
-
-		if (curr_time.getVal() - webUsers_copy[i].getTimeStamp() > DISCONNECT_TIME)
-		{
-			sim.RemovePlayer(i);
-			webUsers_copy[i].exists = false; 
-
-		}
-	}
 }
+
 
 void myEncodeFun()
 {
@@ -372,6 +306,9 @@ void keyCallback(int key, int action)
 	}
 }
 
+
+// --------------------------------------------------------
+
 void renderSkyBox()
 {
     // för drawbox
@@ -404,38 +341,6 @@ void renderSkyBox()
 
 }
 
-void renderGoal(){
-
-    float radius = DOME_RADIUS; //Domens radie
-
-    glm::mat4 trans_mat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -radius));
-    glm::vec3 color;
-
-    sgct::ShaderManager::instance()->bindShaderProgram("avatar");
-    ball.bind();
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(avatarTex));
-
-    //should really look over the rendering
-    btQuaternion quat = game.getGoalQuaternion();
-    btVector3 axis = quat.getAxis();
-    float angle = quat.getAngle();
-
-    glm::mat4 rot_mat = glm::rotate(glm::mat4(1.0f),
-        glm::degrees(angle),
-        glm::vec3(axis.getX(), axis.getY(), axis.getZ()));
-
-    glm::mat4 avatarMat = MVP * rot_mat * trans_mat;
-
-    glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &avatarMat[0][0]);
-    glUniform3f(Color_Loc, 0.0, 0.0, 0.0); // color on the goal
-    glUniform1i(Avatar_Tex_Loc, 0);
-
-    ball.draw();
-
-    ball.unbind();
-}
 
 // renderar den fina figuren som visas. 
 void renderAvatars()
@@ -453,7 +358,7 @@ void renderAvatars()
     
 	//should really look over the rendering, maybe use more threads??
     for(unsigned int i=1; i<MAX_WEB_USERS; i++)
-        if( webUsers[i].exists) //sim.PlayerExists(i) ) // does it exist
+        if( webUsers_copy[i].exists) //sim.PlayerExists(i) ) // does it exist
 		{	
 			fprintf(stderr, "%s %u\n", "render user:  ", i ); // skriver inte ut ngt för slaven..
 
@@ -486,37 +391,6 @@ void renderAvatars()
 	avatar.unbind();
 }
 
-void renderBalls() {
-	float radius = DOME_RADIUS; //Domens radie
-
-	glm::mat4 trans_mat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -radius));
-	glm::vec3 color;
-
-	sgct::ShaderManager::instance()->bindShaderProgram("avatar");
-	ball.bind();
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(avatarTex));
-
-	//should really look over the rendering
-	btQuaternion quat = sim.GetBallDirection(0);
-	btVector3 axis = quat.getAxis();
-	float angle = quat.getAngle();
-
-	glm::mat4 rot_mat = glm::rotate(glm::mat4(1.0f),
-		glm::degrees(angle),
-		glm::vec3(axis.getX(), axis.getY(), axis.getZ()));
-
-	glm::mat4 avatarMat = MVP * rot_mat * trans_mat;
-
-	glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &avatarMat[0][0]);
-	glUniform3f(Color_Loc, 1.0, 1.0, 1.0);
-	glUniform1i(Avatar_Tex_Loc, 0);
-
-	ball.draw();
-
-	ball.unbind();
-}
 
 void renderFootball() {
 	float radius = DOME_RADIUS;
@@ -587,4 +461,55 @@ void ping(unsigned int id) {
 
 }
 
-//Vektor med alla users, vektor med tiden för alla users, globala tiden
+
+void loadTexturesAndStuff(){
+	    // load textures
+    sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
+	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
+    sgct::TextureManager::instance()->loadTexure(avatarTex, "avatar", "avatar.png", true);
+	sgct::TextureManager::instance()->loadTexure(footballTex, "fotball", "football.png", true);
+
+    // add shaders
+	sgct::ShaderManager::instance()->addShaderProgram( "avatar",
+			"avatar.vert",
+			"avatar.frag" );
+	sgct::ShaderManager::instance()->bindShaderProgram( "avatar" );
+	
+	// avatar locs
+	Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "MVP" );
+    Color_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "FaceColor" );
+    Avatar_Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "Tex" );
+	Time_Loc = sgct::ShaderManager::instance()->getShaderProgram("avatar").getUniformLocation("PingTime");
+	Curr_Time = sgct::ShaderManager::instance()->getShaderProgram("avatar").getUniformLocation("CurrTime");
+	Team_Loc = sgct::ShaderManager::instance()->getShaderProgram("avatar").getUniformLocation("Team");
+
+	// fotball shader
+	sgct::ShaderManager::instance()->addShaderProgram("fotball",
+		"avatar.vert",
+		"FootballFragShader.frag");
+	sgct::ShaderManager::instance()->bindShaderProgram("fotball");
+	
+	Matrix_Loc_Football = sgct::ShaderManager::instance()->getShaderProgram("fotball").getUniformLocation("MVP");
+	Tex_Loc_Football = sgct::ShaderManager::instance()->getShaderProgram("fotball").getUniformLocation("Tex");
+
+    // for the skyBox
+    sgct::TextureManager::instance()->loadTexure(textureSkyBox, "skyBox", "sky.png", true);
+
+    // add the box
+    myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::SkyBox);
+
+    //Set up backface culling
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW); //our polygon winding is counter clockwise
+ 
+    sgct::ShaderManager::instance()->addShaderProgram( "xform",
+            "SimpleVertexShader.vert",
+            "SimpleFragmentShader.frag" );
+ 
+    sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
+ 
+    Matrix_Loc_Box = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
+    Tex_Loc_Box = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "Tex" );
+
+    sgct::ShaderManager::instance()->unBindShaderProgram();
+}

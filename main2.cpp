@@ -35,6 +35,7 @@ void renderConnectionInfo();
 void renderBalls();
 void renderFootball();
 void renderGoal();
+void simulateMaster(); 
 
 // ping
 void ping(unsigned int id); // ping from user
@@ -50,7 +51,7 @@ tthread::mutex mWebMutex; //used for thread exclusive data access (prevent corru
 sgct::SharedFloat curr_time(0.0f);
 sgct::SharedFloat last_time(0.0f);
 sgct::SharedVector<UserData> sharedUserData;
-sgct::SharedObject<btQuaternion> sharedPos; // btQuartnions.. 
+sgct::SharedObject<btQuaternion> sharedBallPos; // btQuartnions.. 
 
 bool takeScreenShot = false;
 glm::mat4 MVP;
@@ -77,8 +78,8 @@ GLint Pings_Id;
 GLint Ping_Col;
 GLint Team_Loc;
 
-float pingedTime[MAX_WEB_USERS];
-glm::vec3 pingedPosition[MAX_WEB_USERS];
+//float pingedTime[MAX_WEB_USERS];				lagt enskild i userdata istället!
+//glm::vec3 pingedPosition[MAX_WEB_USERS];		lagt enskild i userdata istället!	
 
 Quad avatar;
 Quad ball;
@@ -130,7 +131,6 @@ void webDecoder(const char * msg, size_t len)
 
     else if (sscanf(msg, "ping %u\n", &id) == 1){
         ping(id);
-        // kommer bara komma in via master.. körs ej på noderna. 
     }
 
     else {
@@ -185,11 +185,6 @@ void myInitFun() {
 	avatar.create(2.4f, 2.4f); // how big
 	football.create(2.0f, 2.0f); // a football instead of a white ball ;) 
 
-	for (int i = 0; i < MAX_WEB_USERS; i++) {
-		pingedTime[i] = 0.0f;
-		pingedPosition[i] = glm::vec3(0.f, 0.f, 0.f);
-	}
-
 	loadTexturesAndStuff(); 
 
 
@@ -215,8 +210,7 @@ void myDrawFun()
 
 
 void myPreSyncFun()
-{	const float DISCONNECT_TIME = 5.0f;
-
+{	
 	//set the time only on the master
 	if( gEngine->isMaster() )
 	{
@@ -225,26 +219,7 @@ void myPreSyncFun()
 		curr_time.setVal( static_cast<float>(sgct::Engine::getTime()) );
 
 		// simulation on master
-		sim.Step(curr_time.getVal() - last_time.getVal());
-		last_time.setVal(curr_time.getVal());
-
-		sharedPos.setVal(sim.GetBallDirection(0)); 
-
-		for (unsigned int i = 1; i<MAX_WEB_USERS; i++) {
-		    btVector3 pos = webUsers[i].calculatePosition(); 
-			//calculate position vector
-			sim.SetPlayerTarget(i, pos);
-
-			btQuaternion direction = sim.GetPlayerDirection(i); 
-			webUsers[i].setPlayerDirection(direction);
-
-			if (curr_time.getVal() - webUsers[i].getTimeStamp() > DISCONNECT_TIME)
-			{
-				sim.RemovePlayer(i);
-				webUsers[i].exists = false; 
-			}
-		}
-
+		simulateMaster(); 
         
         //copy webusers to rendering copy
         mWebMutex.lock();
@@ -256,9 +231,33 @@ void myPreSyncFun()
 	}
 }
 
+void simulateMaster() {
+	const float DISCONNECT_TIME = 5.0f;
+
+	sim.Step(curr_time.getVal() - last_time.getVal());
+	last_time.setVal(curr_time.getVal());
+
+	sharedBallPos.setVal(sim.GetBallDirection(0)); 
+
+	for (unsigned int i = 1; i<MAX_WEB_USERS; i++) {
+	    btVector3 pos = webUsers[i].calculatePosition(); 
+		//calculate position vector
+		sim.SetPlayerTarget(i, pos);
+
+		btQuaternion direction = sim.GetPlayerDirection(i); 
+		webUsers[i].setPlayerDirection(direction);
+
+		if (curr_time.getVal() - webUsers[i].getTimeStamp() > DISCONNECT_TIME)
+		{
+			sim.RemovePlayer(i);
+			webUsers[i].exists = false; 
+		}
+	}
+
+}
+
 void myPostSyncFun()
 {
-	const float DISCONNECT_TIME = 5.0f;
 	if (!gEngine->isMaster())
 	{
 		webUsers_copy = sharedUserData.getVal();
@@ -279,7 +278,7 @@ void myEncodeFun()
 {
 	sgct::SharedData::instance()->writeFloat( &curr_time );
     sgct::SharedData::instance()->writeVector(&sharedUserData);
-    sgct::SharedData::instance()->writeObj(&sharedPos);
+    sgct::SharedData::instance()->writeObj(&sharedBallPos);
 
 }
 
@@ -287,7 +286,7 @@ void myDecodeFun()
 {
 	sgct::SharedData::instance()->readFloat( &curr_time );
     sgct::SharedData::instance()->readVector(&sharedUserData);
-    sgct::SharedData::instance()->readObj(&sharedPos);
+    sgct::SharedData::instance()->readObj(&sharedBallPos);
 
 }
 
@@ -372,7 +371,7 @@ void renderAvatars()
 			btQuaternion quat = webUsers_copy[i].getPlayerDirection();//sim.GetPlayerDirection(i);
 			btVector3 axis = quat.getAxis();
 			float angle = quat.getAngle();
-			float pingTime = pingedTime[i];
+			float pingTime = webUsers_copy[i].getPingTime(); //pingedTime[i];
 			float currTime = curr_time.getVal();
 			int team = webUsers_copy[i].getTeam();
 
@@ -409,7 +408,7 @@ void renderFootball() {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(footballTex));
 	
-	btQuaternion quat = sharedPos.getVal();//sim.GetBallDirection(0);
+	btQuaternion quat = sharedBallPos.getVal();//sim.GetBallDirection(0);
 	btVector3 axis = quat.getAxis();
 	float angle = quat.getAngle();
 	
@@ -440,7 +439,7 @@ void renderPings() {
 	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(avatarTex));
 
 	//should really look over the rendering
-	btQuaternion quat = sharedPos.getVal();//.GetBallDirection(0); //ist för sim
+	btQuaternion quat = sharedBallPos.getVal();//.GetBallDirection(0); //ist för sim
 	btVector3 axis = quat.getAxis();
 	float angle = quat.getAngle();
 
@@ -463,9 +462,9 @@ void renderPings() {
 void ping(unsigned int id) {
     fprintf(stderr, "%s %u\n", "ping from the user ", id); // debug
 
-	pingedTime[id] = static_cast<float>(sgct::Engine::getTime());
-	pingedPosition[id] = sim.GetPlayerDirectionNonQuaternion(id);
-	// pinget funkar fortfarande inte för de olika noderna.. 
+    // only sets on master so no need to use the webCopy, also can use sim. 
+    webUsers[id].setPingTime(static_cast<float>(sgct::Engine::getTime()));
+    webUsers[id].setPingPosition(sim.GetPlayerDirectionNonQuaternion(id));
 
 }
 

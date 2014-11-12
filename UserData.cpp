@@ -22,6 +22,9 @@ UserData::UserData()
     mGreen = 0.0f;
     mBlue = 0.0f;
     mTimeStamp = -1.0f;
+
+    pingedTime = 0.0f;
+    pingedPosition = glm::vec3(0.f, 0.f, 0.f); 
 }
 
 UserData::~UserData()
@@ -64,6 +67,9 @@ btVector3 UserData::calculatePosition(){
 void UserData::setPlayerDirection(btQuaternion dir){
     direction = dir; 
 }
+
+void UserData::setPingTime(float t) {pingedTime = t;}
+void UserData::setPingPosition(glm::vec3 pos){pingedPosition = pos;}
 
 void UserData::setCartesian2d(int x, int y, float timeStamp)
 {

@@ -4,6 +4,8 @@ Game::Game(){
 	running = false;
 	//setGoal(); // set random goal...
 	setGoal(glm::vec3(7.4, 3.0, 0)); // 
+	/* initialize random seed: */
+  	srand (time(NULL));
 }
 
 Game::~Game(){

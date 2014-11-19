@@ -53,6 +53,7 @@ sgct::SharedFloat curr_time(0.0f);
 sgct::SharedFloat last_time(0.0f);
 sgct::SharedVector<UserData> sharedUserData;
 sgct::SharedObject<btQuaternion> sharedBallPos; // btQuartnions.. 
+sgct::SharedObject<btQuaternion> sharedGoalPos;
 
 bool takeScreenShot = false;
 glm::mat4 MVP;
@@ -78,6 +79,9 @@ GLint Pos_Loc;
 GLint Pings_Id;
 GLint Ping_Col;
 GLint Team_Loc;
+GLint Matrix_Loc_Goal;
+GLint Team_Loc_Goal;
+GLint Goal_Loc_Tex = -1;
 
 //float pingedTime[MAX_WEB_USERS];				lagt enskild i userdata istället!
 //glm::vec3 pingedPosition[MAX_WEB_USERS];		lagt enskild i userdata istället!	
@@ -170,6 +174,7 @@ int main( int argc, char* argv[] )
         webserver.setCallback(webDecoder);
         //webserver.start(9000);
         webserver.start(80);
+        game.setGoal(); // set a random goal at the start
     }
 
 	// Main loop
@@ -186,7 +191,7 @@ int main( int argc, char* argv[] )
 void myInitFun() {
 	avatar.create(2.4f, 2.4f); // how big
 	football.create(2.0f, 2.0f); // a football instead of a white ball ;) 
-	goal.create(1.0f, 1.0f);
+	goal.create(3.0f, 3.0f);
 
 	loadTexturesAndStuff(); 
 }
@@ -203,7 +208,7 @@ void myDrawFun()
 	renderAvatars();
 	renderFootball();
 
-	game.update(sim.GetBallDirectionNonQuaternion(0));
+	//game.update(sim.GetBallDirectionNonQuaternion(0));
 	// std::cout << "Balldirection: " << sim.GetBallDirectionNonQuaternion(0).x << " ; " << sim.GetBallDirectionNonQuaternion(0).y << " ; " << sim.GetBallDirectionNonQuaternion(0).z << std::endl;
     //unbind shader program
     sgct::ShaderManager::instance()->unBindShaderProgram();
@@ -223,6 +228,9 @@ void myPreSyncFun()
 
 		// simulation on master
 		simulateMaster(); 
+
+		// set the goal target
+		sharedGoalPos.setVal(game.getGoalQuaternion());
         
         //copy webusers to rendering copy
         mWebMutex.lock();
@@ -231,6 +239,9 @@ void myPreSyncFun()
 		
         //Set the data that will be synced to the clients this frame
 		sharedUserData.setVal(webUsers_copy);
+
+		// se if goal
+		game.update(sim.GetBallDirectionNonQuaternion(0));
 	}
 }
 
@@ -282,6 +293,8 @@ void myEncodeFun()
 	sgct::SharedData::instance()->writeFloat( &curr_time );
     sgct::SharedData::instance()->writeVector(&sharedUserData);
     sgct::SharedData::instance()->writeObj(&sharedBallPos);
+    sgct::SharedData::instance()->writeObj(&sharedGoalPos);
+
 
 }
 
@@ -290,6 +303,7 @@ void myDecodeFun()
 	sgct::SharedData::instance()->readFloat( &curr_time );
     sgct::SharedData::instance()->readVector(&sharedUserData);
     sgct::SharedData::instance()->readObj(&sharedBallPos);
+    sgct::SharedData::instance()->readObj(&sharedGoalPos);
 
 }
 
@@ -432,21 +446,23 @@ void renderFootball() {
 void renderGoal() {
 	float radius = DOME_RADIUS;
 	glm::mat4 trans_mat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -radius));
-	sgct::ShaderManager::instance()->bindShaderProgram("fotball");
+	sgct::ShaderManager::instance()->bindShaderProgram("goals");
 
 	goal.bind();
 
-	btQuaternion quat = game.getGoalQuaternion();//sim.GetBallDirection(0);
+	btQuaternion quat = sharedGoalPos.getVal();//game.getGoalQuaternion();
 	btVector3 axis = quat.getAxis();
 	float angle = quat.getAngle();
+	int team = 1; // bara så länge
 
 	glm::mat4 rot_mat = glm::rotate(glm::mat4(1.0f),
 		glm::degrees(angle),
 		glm::vec3(axis.getX(), axis.getY(), axis.getZ()));
 
-	glm::mat4 footballMat = MVP * rot_mat * trans_mat;
-	glUniformMatrix4fv(Matrix_Loc_Football, 1, GL_FALSE, &footballMat[0][0]);
-	glUniform1i(Tex_Loc_Football, 0);
+	glm::mat4 goalMat = MVP * rot_mat * trans_mat;
+	glUniformMatrix4fv(Matrix_Loc_Goal, 1, GL_FALSE, &goalMat[0][0]);
+	glUniform1i(Team_Loc_Goal, team);
+	glUniform1i(Goal_Loc_Tex, 0);
 
 	goal.draw();
 	goal.unbind();
@@ -492,6 +508,16 @@ void loadTexturesAndStuff(){
 	
 	Matrix_Loc_Football = sgct::ShaderManager::instance()->getShaderProgram("fotball").getUniformLocation("MVP");
 	Tex_Loc_Football = sgct::ShaderManager::instance()->getShaderProgram("fotball").getUniformLocation("Tex");
+
+	// goal shader
+	sgct::ShaderManager::instance()->addShaderProgram("goals",
+		"avatar.vert",
+		"goal.frag");
+	sgct::ShaderManager::instance()->bindShaderProgram("goals");
+
+	Matrix_Loc_Goal = sgct::ShaderManager::instance()->getShaderProgram("goals").getUniformLocation("MVP");
+	Team_Loc_Goal = sgct::ShaderManager::instance()->getShaderProgram("goals").getUniformLocation("Team");
+	Goal_Loc_Tex = sgct::ShaderManager::instance()->getShaderProgram("goals").getUniformLocation("Tex");
 
     // for the skyBox
     sgct::TextureManager::instance()->loadTexure(textureSkyBox, "skyBox", "sky.png", true);

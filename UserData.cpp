@@ -11,6 +11,7 @@ All rights reserved.
 #define CANVAS_SIZE 500.0f
 #define DEG90_TO_RAD 1.570796327f
 #define DEG180_TO_RAD 3.141592654f
+#define DOME_RADIUS 7.4f
 
 UserData::UserData()
 {
@@ -21,6 +22,9 @@ UserData::UserData()
     mGreen = 0.0f;
     mBlue = 0.0f;
     mTimeStamp = -1.0f;
+
+    pingedTime = 0.0f;
+    pingedPosition = glm::vec3(0.f, 0.f, 0.f); 
 }
 
 UserData::~UserData()
@@ -51,6 +55,21 @@ void UserData::setTeam(int id) {
 int UserData::getTeam() {
     return team; 
 }
+
+btVector3 UserData::calculatePosition(){
+    float h = sqrt(1 - s*s - t*t);
+    btVector3 pos(s, h, -t);
+    pos.normalize();
+    pos *= DOME_RADIUS;
+    return pos;
+}
+
+void UserData::setPlayerDirection(btQuaternion dir){
+    direction = dir; 
+}
+
+void UserData::setPingTime(float t) {pingedTime = t;}
+void UserData::setPingPosition(glm::vec3 pos){pingedPosition = pos;}
 
 void UserData::setCartesian2d(int x, int y, float timeStamp)
 {

@@ -1,0 +1,33 @@
+body {
+			background-color: black;
+			font-family: Josefin Sans, Georgia, serif; 
+			font-size: 18px;
+			margin: 0px;
+			text-align: center;
+		}
+
+		.jumbotron{
+			text-align: center;
+		}
+
+		canvas {
+			border:0px solid #fff; /*change back to black later, just to see where the canvas is*/
+			background-color:#000000;
+
+		}
+		#conn_status{
+  			background-color: #f2dede;
+  			border-color: #eed3d7;
+  			color: #b94a48;
+  			padding:20px 10px 10px 10px;
+		}
+
+		#playerColor{
+			min-height: 100px;
+			margin-bottom: 20px;
+
+		}
+
+		.center{
+			text-align: center;
+		}

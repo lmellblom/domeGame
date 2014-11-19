@@ -78,12 +78,13 @@ GLint Pings_Id;
 GLint Ping_Col;
 GLint Team_Loc;
 
-//float pingedTime[MAX_WEB_USERS];				lagt enskild i userdata istället!
-//glm::vec3 pingedPosition[MAX_WEB_USERS];		lagt enskild i userdata istället!	
 
 Quad avatar;
 Quad ball;
 Quad football;
+
+// --------------------
+
 
 Simulation sim;
 
@@ -125,7 +126,7 @@ void webDecoder(const char * msg, size_t len)
         webUsers[id].setColor(color[0], color[1], color[2]);
     }
 	else if (sscanf(msg, "signal %u\n", &id) == 1){
-        fprintf(stderr, "%s %u\n", "alive from user ", id );
+        //fprintf(stderr, "%s %u\n", "alive from user ", id );
 		webUsers[id].setTimeStamp(static_cast<float>(sgct::Engine::getTime()));
 	}
 
@@ -426,45 +427,13 @@ void renderFootball() {
 
 }
 
-void renderPings() {
-	float radius = 7.4f; //Domens radie
-
-	glm::mat4 trans_mat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -radius));
-	glm::vec3 color;
-
-	sgct::ShaderManager::instance()->bindShaderProgram("avatar");
-	ball.bind();
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(avatarTex));
-
-	//should really look over the rendering
-	btQuaternion quat = sharedBallPos.getVal();//.GetBallDirection(0); //ist för sim
-	btVector3 axis = quat.getAxis();
-	float angle = quat.getAngle();
-
-	glm::mat4 rot_mat = glm::rotate(glm::mat4(1.0f),
-		glm::degrees(angle),
-		glm::vec3(axis.getX(), axis.getY(), axis.getZ()));
-
-	glm::mat4 avatarMat = MVP * rot_mat * trans_mat;
-
-	glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &avatarMat[0][0]);
-	glUniform3f(Color_Loc, 1.0, 1.0, 1.0);
-	glUniform1i(Avatar_Tex_Loc, 0);
-
-	ball.draw();
-
-	ball.unbind();
-}
-
 // function to be used when a user sends a ping. 
 void ping(unsigned int id) {
-    fprintf(stderr, "%s %u\n", "ping from the user ", id); // debug
-
+    //fprintf(stderr, "%s %u\n", "ping from the user ", id); // debug
     // only sets on master so no need to use the webCopy, also can use sim. 
     webUsers[id].setPingTime(static_cast<float>(sgct::Engine::getTime()));
     webUsers[id].setPingPosition(sim.GetPlayerDirectionNonQuaternion(id));
+
 
 }
 

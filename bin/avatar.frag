@@ -23,6 +23,11 @@ void main()
     float dist = length(p);
     float time = (CurrTime - PingTime)*speed;
 
+    if(time < 30) {
+        float opacity = sin( (time/2.0)*3.14 );
+        color += vec4(1.0, 1.0, 1.0, opacity*f);
+    }
+
     if(Team == 0) {
     	if( (dist > 0.3) && (dist < 0.34) ){
     		color = vec4(1.0, 0.0, 0.0, 1.0);

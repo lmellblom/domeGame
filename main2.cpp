@@ -9,6 +9,7 @@ All rights reserved.
 #include "UserData.h"
 #include "Quad.h"
 #include "Simulation.h"
+#include "Game.h"
 
 #include <iostream>
 
@@ -82,10 +83,11 @@ GLint Team_Loc;
 //glm::vec3 pingedPosition[MAX_WEB_USERS];		lagt enskild i userdata istället!	
 
 Quad avatar;
-Quad ball;
+Quad goal;
 Quad football;
 
 Simulation sim;
+Game game;
 
 
 // fetch data from the html site. do different things depending on the input
@@ -184,10 +186,9 @@ int main( int argc, char* argv[] )
 void myInitFun() {
 	avatar.create(2.4f, 2.4f); // how big
 	football.create(2.0f, 2.0f); // a football instead of a white ball ;) 
+	goal.create(1.0f, 1.0f);
 
 	loadTexturesAndStuff(); 
-
-
 }
 
 void myDrawFun()
@@ -198,14 +199,16 @@ void myDrawFun()
     MVP = gEngine->getActiveModelViewProjectionMatrix();
 
     renderSkyBox();
+	renderGoal();
 	renderAvatars();
 	renderFootball();
+
+	game.update(sim.GetBallDirectionNonQuaternion(0));
 
     //unbind shader program
     sgct::ShaderManager::instance()->unBindShaderProgram();
 
     glDisable(GL_BLEND);
-
 }
 
 
@@ -426,20 +429,14 @@ void renderFootball() {
 
 }
 
-void renderPings() {
-	float radius = 7.4f; //Domens radie
-
+void renderGoal() {
+	float radius = DOME_RADIUS;
 	glm::mat4 trans_mat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -radius));
-	glm::vec3 color;
+	sgct::ShaderManager::instance()->bindShaderProgram("fotball");
 
-	sgct::ShaderManager::instance()->bindShaderProgram("avatar");
-	ball.bind();
+	goal.bind();
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(avatarTex));
-
-	//should really look over the rendering
-	btQuaternion quat = sharedBallPos.getVal();//.GetBallDirection(0); //ist för sim
+	btQuaternion quat = game.getGoalQuaternion();//sim.GetBallDirection(0);
 	btVector3 axis = quat.getAxis();
 	float angle = quat.getAngle();
 
@@ -447,15 +444,13 @@ void renderPings() {
 		glm::degrees(angle),
 		glm::vec3(axis.getX(), axis.getY(), axis.getZ()));
 
-	glm::mat4 avatarMat = MVP * rot_mat * trans_mat;
+	glm::mat4 footballMat = MVP * rot_mat * trans_mat;
+	glUniformMatrix4fv(Matrix_Loc_Football, 1, GL_FALSE, &footballMat[0][0]);
+	glUniform1i(Tex_Loc_Football, 0);
 
-	glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &avatarMat[0][0]);
-	glUniform3f(Color_Loc, 1.0, 1.0, 1.0);
-	glUniform1i(Avatar_Tex_Loc, 0);
+	goal.draw();
+	goal.unbind();
 
-	ball.draw();
-
-	ball.unbind();
 }
 
 // function to be used when a user sends a ping. 
@@ -467,7 +462,6 @@ void ping(unsigned int id) {
     webUsers[id].setPingPosition(sim.GetPlayerDirectionNonQuaternion(id));
 
 }
-
 
 void loadTexturesAndStuff(){
 	    // load textures

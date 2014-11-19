@@ -3,7 +3,7 @@
 Game::Game(){
 	running = false;
 	//setGoal(); // set random goal...
-	setGoal(glm::vec3(0, 7.4, 0)); // 
+	setGoal(glm::vec3(7.4, 0, 0)); // 
 }
 
 Game::~Game(){

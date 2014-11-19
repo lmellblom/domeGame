@@ -15,6 +15,7 @@ public:
 	void update(glm::vec3 ballCoord);
 	void reset();
 	void setGoal(glm::vec3 coords);
+	void setGoal();
 	glm::vec3 getGoalCoords();
 	btQuaternion getGoalQuaternion();
 

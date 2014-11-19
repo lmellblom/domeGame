@@ -28,8 +28,8 @@ void Game::update(glm::vec3 ballCoord){ // skicka in bollens kooordinat här! sk
 	if ( glm::distance(ballCoord, goalCoords) < 0.13 ) {
 		float dist = float (glm::distance(ballCoord, goalCoords)); 
 		fprintf(stderr, "Goal distance %f\n", dist ); 
+		setGoal();
 	}
-
 
 }
 
@@ -42,6 +42,14 @@ void Game::setGoal(glm::vec3 coords){
 
 }
 
+void Game::setGoal(){
+	float x = rand() % 6 + 1.4;
+	float y = rand() % 6 + 1.4;
+	float z = rand() % 6 + 1.4;
+	
+	goalCoords = glm::normalize(glm::vec3(x, y, z));
+
+}
 
 glm::vec3 Game::getGoalCoords(){
 	return goalCoords;

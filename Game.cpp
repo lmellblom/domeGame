@@ -3,7 +3,7 @@
 Game::Game(){
 	running = false;
 	//setGoal(); // set random goal...
-	setGoal(glm::vec3(7.4, 0, 0)); // 
+	setGoal(glm::vec3(7.4, 3.0, 0)); // 
 }
 
 Game::~Game(){
@@ -25,7 +25,7 @@ void Game::update(glm::vec3 ballCoord){ // skicka in bollens kooordinat här! sk
 
 	// check the ballCord minus the goalCoords, if they are almost the same, GOAL! and the game ends..
 
-	if ( glm::distance(ballCoord, goalCoords) < 0.03 ) {
+	if ( glm::distance(ballCoord, goalCoords) < 0.13 ) {
 		float dist = float (glm::distance(ballCoord, goalCoords)); 
 		fprintf(stderr, "Goal distance %f\n", dist ); 
 	}

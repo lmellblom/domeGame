@@ -204,7 +204,7 @@ void myDrawFun()
 	renderFootball();
 
 	game.update(sim.GetBallDirectionNonQuaternion(0));
-
+	// std::cout << "Balldirection: " << sim.GetBallDirectionNonQuaternion(0).x << " ; " << sim.GetBallDirectionNonQuaternion(0).y << " ; " << sim.GetBallDirectionNonQuaternion(0).z << std::endl;
     //unbind shader program
     sgct::ShaderManager::instance()->unBindShaderProgram();
 

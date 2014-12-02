@@ -22,6 +22,7 @@ public:
 	bool PlayerExists(int i);
 	btQuaternion GetBallDirection(int i);
 	glm::vec3 GetBallDirectionNonQuaternion(int i);
+	void AddBall(int i);
 
 
 private:

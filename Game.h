@@ -16,15 +16,21 @@ public:
 	void reset();
 	void setGoal(glm::vec3 coords);
 	void setGoal();
+	int getTeam(); 
 	glm::vec3 getGoalCoords();
 	btQuaternion getGoalQuaternion();
+	void printScore();
 
 private:
 	int numberOfPlayers;
 	bool running; // is the game running
+	int teamGoal; // 0 or 1 depending on which team that are supposed to score
+
+	//std::vector<int> teamScore; 
+
+	int teamScore[2]; // two teams
 
 	glm::vec3 goalCoords;
-
 };
 
 #endif

@@ -54,6 +54,7 @@ sgct::SharedFloat last_time(0.0f);
 sgct::SharedVector<UserData> sharedUserData;
 sgct::SharedObject<btQuaternion> sharedBallPos; // btQuartnions.. 
 sgct::SharedObject<btQuaternion> sharedGoalPos;
+sgct::SharedObject<int> sharedGameTeam; 
 
 bool takeScreenShot = false;
 glm::mat4 MVP;
@@ -131,7 +132,7 @@ void webDecoder(const char * msg, size_t len)
         webUsers[id].setColor(color[0], color[1], color[2]);
     }
 	else if (sscanf(msg, "signal %u\n", &id) == 1){
-        fprintf(stderr, "%s %u\n", "alive from user ", id );
+        //fprintf(stderr, "%s %u\n", "alive from user ", id );
 		webUsers[id].setTimeStamp(static_cast<float>(sgct::Engine::getTime()));
 	}
 
@@ -174,7 +175,6 @@ int main( int argc, char* argv[] )
         webserver.setCallback(webDecoder);
         //webserver.start(9000);
         webserver.start(80);
-        game.setGoal(); // set a random goal at the start
     }
 
 	// Main loop
@@ -189,9 +189,14 @@ int main( int argc, char* argv[] )
 }
 
 void myInitFun() {
+	sim.AddBall(0); // add the ball in the simulation
+
+	// creates the quads
 	avatar.create(2.4f, 2.4f); // how big
-	football.create(2.0f, 2.0f); // a football instead of a white ball ;) 
-	goal.create(3.0f, 3.0f);
+	football.create(1.5f, 1.5f); // a football instead of a white ball ;) 
+	goal.create(2.0f, 2.0f);
+
+	game.setGoal(); // set a random goal at the start
 
 	loadTexturesAndStuff(); 
 }
@@ -229,6 +234,9 @@ void myPreSyncFun()
 		// simulation on master
 		simulateMaster(); 
 
+		// simulate the balls position. 
+		sharedBallPos.setVal(sim.GetBallDirection(0)); 
+
 		// set the goal target
 		sharedGoalPos.setVal(game.getGoalQuaternion());
         
@@ -242,6 +250,7 @@ void myPreSyncFun()
 
 		// se if goal
 		game.update(sim.GetBallDirectionNonQuaternion(0));
+		sharedGameTeam.setVal(game.getTeam()); // kanske inte bästa idéen.
 	}
 }
 
@@ -251,20 +260,20 @@ void simulateMaster() {
 	sim.Step(curr_time.getVal() - last_time.getVal());
 	last_time.setVal(curr_time.getVal());
 
-	sharedBallPos.setVal(sim.GetBallDirection(0)); 
+	for (unsigned int i = 1; i<MAX_WEB_USERS; i++) { // inte bra grej egentligen.. 
+		if(webUsers[i].exists){ // only calculate on the users that are active. 
+		    btVector3 pos = webUsers[i].calculatePosition(); 
+			//calculate position vector
+			sim.SetPlayerTarget(i, pos);
 
-	for (unsigned int i = 1; i<MAX_WEB_USERS; i++) {
-	    btVector3 pos = webUsers[i].calculatePosition(); 
-		//calculate position vector
-		sim.SetPlayerTarget(i, pos);
+			btQuaternion direction = sim.GetPlayerDirection(i); 
+			webUsers[i].setPlayerDirection(direction);
 
-		btQuaternion direction = sim.GetPlayerDirection(i); 
-		webUsers[i].setPlayerDirection(direction);
-
-		if (curr_time.getVal() - webUsers[i].getTimeStamp() > DISCONNECT_TIME)
-		{
-			sim.RemovePlayer(i);
-			webUsers[i].exists = false; 
+			if (curr_time.getVal() - webUsers[i].getTimeStamp() > DISCONNECT_TIME)
+			{
+				sim.RemovePlayer(i);
+				webUsers[i].exists = false; 
+			}
 		}
 	}
 
@@ -294,6 +303,7 @@ void myEncodeFun()
     sgct::SharedData::instance()->writeVector(&sharedUserData);
     sgct::SharedData::instance()->writeObj(&sharedBallPos);
     sgct::SharedData::instance()->writeObj(&sharedGoalPos);
+    sgct::SharedData::instance()->writeObj(&sharedGameTeam);
 
 
 }
@@ -304,6 +314,7 @@ void myDecodeFun()
     sgct::SharedData::instance()->readVector(&sharedUserData);
     sgct::SharedData::instance()->readObj(&sharedBallPos);
     sgct::SharedData::instance()->readObj(&sharedGoalPos);
+    sgct::SharedData::instance()->readObj(&sharedGameTeam);
 
 }
 
@@ -453,7 +464,7 @@ void renderGoal() {
 	btQuaternion quat = sharedGoalPos.getVal();//game.getGoalQuaternion();
 	btVector3 axis = quat.getAxis();
 	float angle = quat.getAngle();
-	int team = 1; // bara så länge
+	int team = sharedGameTeam.getVal(); // bara så länge
 
 	glm::mat4 rot_mat = glm::rotate(glm::mat4(1.0f),
 		glm::degrees(angle),

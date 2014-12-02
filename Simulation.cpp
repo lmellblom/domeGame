@@ -29,7 +29,6 @@ Simulation::Simulation() {
 
 	dynamics_world_->addRigidBody(ground_rigid_body_);
 
-	ball_list_[0] = new Ball(dynamics_world_, btVector3(0.0, 7.4, 0.0), 1.0, 10.0); // the mass of the ball is the last argument
 }
 
 Simulation::~Simulation()  {
@@ -59,6 +58,13 @@ void Simulation::Step(float dt) {
 		if (player_list_[i] != NULL) {
 		player_list_[i]->Update(dt); //update player movement
 		}
+}
+
+void Simulation::AddBall(int i){
+	if (ball_list_[i] == NULL){
+		ball_list_[i] = new Ball(dynamics_world_, btVector3(0.0, 7.4, 0.0), 1.0, 9.0); // the mass of the ball is the last argument
+	}
+
 }
 
 //not very good solution, should be called at a fixed interval

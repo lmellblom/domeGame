@@ -1,0 +1,1 @@
+sudo ./domeGame -config two_fisheye_nodes.xml -local 1 --slave

@@ -13,6 +13,9 @@ uniform int Team;
 
 void main()
 {
+    vec4 team0Color = vec4(1.0,0.0,0.0,1.0);
+    vec4 team1Color = vec4(0.0,0.0,1.0,1.0);
+
     vec2 p = -1.0 + 2.0*uv;
     float f = 1.0 - step(0.1,length(p)); // the intensity
     vec3 col = vec3(f*FaceColor); // the color
@@ -28,15 +31,9 @@ void main()
         color += vec4(1.0, 1.0, 1.0, opacity*f);
     }
 
-    if(Team == 0) {
-    	if( (dist > 0.3) && (dist < 0.34) ){
-    		color = vec4(1.0, 0.0, 0.0, 1.0);
-    	}
-    } else if (Team == 1) {
-    	if( (dist > 0.3) && (dist < 0.34) ){
-    		color = vec4(0.0, 0.0, 1.0, 1.0);
-    	}
-    }
+    // set team color round the avatar
+    //color = ( (dist>0.3 && dist < 0.34) ? ( Team==0 ? team0Color : team1Color ) : color);
+
    
     if ( (dist > 0.08*time) && (dist < 0.1*time) && (dist < max_radius) ) {
         color = vec4(FaceColor, 1.0);

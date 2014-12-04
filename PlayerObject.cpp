@@ -27,7 +27,7 @@ void PlayerObject::Update(float dt) {
 
 	float speed = body_->getLinearVelocity().length();
 
-	if (distance2 < 0.1){
+	if (distance2 < 0.2){
 		body_->setLinearVelocity(btVector3(0.0,0.0,0.0));
 	}
 	else{

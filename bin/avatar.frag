@@ -26,15 +26,6 @@ void main()
     float dist = length(p);
     float time = (CurrTime - PingTime)*speed;
 
-    if(time < 30) {
-        float opacity = sin( (time/2.0)*3.14 );
-        color += vec4(1.0, 1.0, 1.0, opacity*f);
-    }
-
-    // set team color round the avatar
-    //color = ( (dist>0.3 && dist < 0.34) ? ( Team==0 ? team0Color : team1Color ) : color);
-
-   
     if ( (dist > 0.08*time) && (dist < 0.1*time) && (dist < max_radius) ) {
         color = vec4(FaceColor, 1.0);
     } 

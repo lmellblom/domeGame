@@ -31,7 +31,7 @@ bool Game::update(glm::vec3 ballCoord){ // skicka in bollens kooordinat här! sk
 	// check state in the game, if we have reached the goal. 
 
 	// check the ballCord minus the goalCoords, if they are almost the same, GOAL! and the game ends..
-	if ( glm::distance(ballCoord, goalCoords) < 0.53 ) {
+	if ( glm::distance(ballCoord, goalCoords) < 0.13 ) {
 		float dist = float (glm::distance(ballCoord, goalCoords)); 
 		fprintf(stderr, "Goal distance %f\n", dist ); 
 		reset();

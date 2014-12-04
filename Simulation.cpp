@@ -29,7 +29,7 @@ Simulation::Simulation() {
 
 	dynamics_world_->addRigidBody(ground_rigid_body_);
 
-	ball = new Ball(dynamics_world_, btVector3(0.0, 7.4, 0.0), 1.0, 1.0); // the mass of the ball is the last argument
+	ball = new Ball(dynamics_world_, btVector3(0.0, 7.4, 0.0), 0.4, 1.0); // the mass of the ball is the last argument
 
 }
 

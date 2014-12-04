@@ -198,8 +198,8 @@ int main(int argc, char* argv[])
 }
 
 void myInitFun() {
-	avatar.create(2.4f, 2.4f); // how big
-	football.create(2.0f, 2.0f); // a football instead of a white ball ;) 
+	avatar.create(2.2f, 2.2f); // how big
+	football.create(0.8f, 0.8f); // a football instead of a white ball ;) 
 	goal.create(3.0f, 3.0f);
 
 	loadTexturesAndStuff();

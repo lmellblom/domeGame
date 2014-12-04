@@ -214,6 +214,9 @@ void myDrawFun()
 
 	MVP = gEngine->getActiveModelViewProjectionMatrix();
 
+	/* kanske ha en count för hur många aktiva spelare, och rendera ngt annat snygg då? hmm
+	*/
+
 	renderSkyBox();
 	//renderGoal();
 	renderAvatars();
@@ -403,6 +406,7 @@ void renderSkyBox()
 // renderar den fina figuren som visas. 
 void renderAvatars()
 {
+
 	float radius = DOME_RADIUS; //Domens radie
 
 	glm::mat4 trans_mat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -radius));
@@ -418,30 +422,38 @@ void renderAvatars()
 	for (unsigned int i = 1; i<MAX_WEB_USERS; i++)
 		if (webUsers_copy[i].exists) //sim.PlayerExists(i) ) // does it exist
 		{
-		btQuaternion quat = webUsers_copy[i].getPlayerDirection();//sim.GetPlayerDirection(i);
-		btVector3 axis = quat.getAxis();
-		float angle = quat.getAngle();
-		float pingTime = webUsers_copy[i].getPingTime(); //pingedTime[i];
-		float currTime = curr_time.getVal();
-		int team = webUsers_copy[i].getTeam();
+			btQuaternion quat = webUsers_copy[i].getPlayerDirection();//sim.GetPlayerDirection(i);
+			btVector3 axis = quat.getAxis();
+			float angle = quat.getAngle();
+			float pingTime = webUsers_copy[i].getPingTime(); //pingedTime[i];
+			float currTime = curr_time.getVal();
+			int team = webUsers_copy[i].getTeam();
 
-		glm::mat4 rot_mat = glm::rotate(glm::mat4(1.0f),
-			glm::degrees(angle),
-			glm::vec3(axis.getX(), axis.getY(), axis.getZ()));
+			if (axis.getX() == 0 && axis.getY()==0 && axis.getZ()==0) {
+				// detta enbart för att det krashace på mac om detta gjordes med rotationen nedan.. hmm
+			}
+			
+			else{
+				// denna rotation kraschade förut innan if-satsen
+				glm::mat4 rot_mat = glm::rotate(glm::mat4(1.0f),
+					glm::degrees(angle),
+					glm::vec3(axis.getX(), axis.getY(), axis.getZ()));
 
-		glm::mat4 avatarMat = MVP * rot_mat * trans_mat;
+				glm::mat4 avatarMat = MVP * rot_mat * trans_mat;
 
-		color.r = webUsers_copy[i].getRed();
-		color.g = webUsers_copy[i].getGreen();
-		color.b = webUsers_copy[i].getBlue();
-		glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &avatarMat[0][0]);
-		glUniform3f(Color_Loc, color.r, color.g, color.b);
-		glUniform1f(Time_Loc, pingTime);
-		glUniform1f(Curr_Time, currTime);
-		glUniform1i(Team_Loc, team);
-		glUniform1i(Avatar_Tex_Loc, 0);
+				color.r = webUsers_copy[i].getRed();
+				color.g = webUsers_copy[i].getGreen();
+				color.b = webUsers_copy[i].getBlue();
+				glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &avatarMat[0][0]);
+				glUniform3f(Color_Loc, color.r, color.g, color.b);
+				glUniform1f(Time_Loc, pingTime);
+				glUniform1f(Curr_Time, currTime);
+				glUniform1i(Team_Loc, team);
+				glUniform1i(Avatar_Tex_Loc, 0);
 
-		avatar.draw();
+				avatar.draw();
+			}
+
 		}
 
 	avatar.unbind();

@@ -378,8 +378,9 @@ void renderSkyBox()
 
 	glUniformMatrix4fv(Matrix_Loc_Box, 1, GL_FALSE, &BoxMVP[0][0]);
 	glUniform1i(Tex_Loc_Box, 0);
+	
 	glm::vec3 v = sharedBallVec.getVal();
-	v = sim.GetBallDirVec();
+	//v = sim.GetBallDirVec(); // måste vara shared
 	//std::cout << v.x << " " << v.y << " " << v.z << std::endl;
 	glUniform3f(Ball_Vec_Loc, v.x, v.y, v.z);
 	v = sharedGoalVec.getVal();

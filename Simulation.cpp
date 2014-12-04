@@ -13,7 +13,7 @@ Simulation::Simulation() {
 		broad_phase_, solver_, collision_configuration_);
 
 	//set gravity
-	dynamics_world_->setGravity(btVector3(0, -5.82, -5.0)); // gravity of y.
+	dynamics_world_->setGravity(btVector3(0, 5.82, 0.0)); // gravity of y.
 
 	//init ground object
 	ground_shape_ = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
@@ -29,7 +29,7 @@ Simulation::Simulation() {
 
 	dynamics_world_->addRigidBody(ground_rigid_body_);
 
-	ball_list_[0] = new Ball(dynamics_world_, btVector3(0.0, 7.4, 0.0), 1.0, 10.0); // the mass of the ball is the last argument
+	ball = new Ball(dynamics_world_, btVector3(0.0, 7.4, 0.0), 1.0, 1.0); // the mass of the ball is the last argument
 }
 
 Simulation::~Simulation()  {
@@ -42,6 +42,8 @@ Simulation::~Simulation()  {
 		if (player_list_[i] != NULL) {
 			delete player_list_[i];
 		}
+
+	delete ball;
 
 
 	delete dynamics_world_;
@@ -87,7 +89,7 @@ btQuaternion Simulation::GetPlayerDirection(int i) {
 	return btQuaternion(xyz.getX(), xyz.getY(), xyz.getZ(), w).normalize();
 }
 
-glm::vec3 Simulation::GetPlayerDirectionNonQuaternion(int i) {
+glm::vec3 Simulation::GetPlayerDirVec(int i) {
 	glm::vec3 dir = glm::vec3(player_list_[i]->GetDirection().getX(), 
 		player_list_[i]->GetDirection().getY(), 
 		player_list_[i]->GetDirection().getZ());
@@ -100,18 +102,18 @@ bool Simulation::PlayerExists(int i) {
 	return player_list_[i] != NULL;
 }
 
-btQuaternion Simulation::GetBallDirection(int i) {
+btQuaternion Simulation::GetBallDirection() {
 	btVector3 up = btVector3(0, 0, -1);
-	btVector3 dir = ball_list_[i]->GetDirection();
+	btVector3 dir = ball->GetDirection();
 	btVector3 xyz = up.cross(dir);
 	float w = sqrt(up.length2() * dir.length2()) + up.dot(dir);
 	return btQuaternion(xyz.getX(), xyz.getY(), xyz.getZ(), w).normalize();
 }
 
-glm::vec3 Simulation::GetBallDirectionNonQuaternion(int i) {
-	glm::vec3 dir = glm::vec3(ball_list_[i]->GetDirection().getX(), 
-		ball_list_[i]->GetDirection().getY(), 
-		ball_list_[i]->GetDirection().getZ());
+glm::vec3 Simulation::GetBallDirVec() {
+	glm::vec3 dir = glm::vec3(ball->GetDirection().getX(), 
+		ball->GetDirection().getY(), 
+		ball->GetDirection().getZ());
 
 	return dir;
 }

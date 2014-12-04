@@ -18,10 +18,10 @@ public:
 	void SetPlayerTarget(int i, const btVector3& v);
 	void RemovePlayer(int i);
 	btQuaternion GetPlayerDirection(int i);
-	glm::vec3 GetPlayerDirectionNonQuaternion(int i);
+	glm::vec3 GetPlayerDirVec(int i);
 	bool PlayerExists(int i);
-	btQuaternion GetBallDirection(int i);
-	glm::vec3 GetBallDirectionNonQuaternion(int i);
+	btQuaternion GetBallDirection();
+	glm::vec3 GetBallDirVec();
 
 
 private:
@@ -36,7 +36,7 @@ private:
 	btRigidBody* ground_rigid_body_;
 
 	PlayerObject* player_list_[MAX_OBJECTS];
-	Ball* ball_list_[MAX_STUFF];
+	Ball* ball;
 };
 
 #endif  // Simulation_H

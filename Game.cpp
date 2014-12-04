@@ -1,10 +1,12 @@
 #include "Game.h"
+#include <ctime>
 
 Game::Game(){
 	running = false;
 	//setGoal(); // set random goal...
 	setGoal(glm::vec3(7.4, 3.0, 0)); // 
 	/* initialize random seed: */
+	prevGoal = glm::vec3(0.0, -7.4, 0);
   	srand (time(NULL));
 }
 
@@ -22,17 +24,20 @@ void Game::start(){
 void Game::addPlayer(){
 }
 
-void Game::update(glm::vec3 ballCoord){ // skicka in bollens kooordinat här! ska vara normalizerad!!
+bool Game::update(glm::vec3 ballCoord){ // skicka in bollens kooordinat här! ska vara normalizerad!!
 	// check state in the game, if we have reached the goal. 
 
 	// check the ballCord minus the goalCoords, if they are almost the same, GOAL! and the game ends..
 
-	if ( glm::distance(ballCoord, goalCoords) < 0.13 ) {
+	if ( glm::distance(ballCoord, goalCoords) < 0.53 ) {
 		float dist = float (glm::distance(ballCoord, goalCoords)); 
 		fprintf(stderr, "Goal distance %f\n", dist ); 
 		setGoal();
+		return true;
 	}
-
+	else {
+		return false;
+	}
 }
 
 void Game::reset(){
@@ -48,7 +53,10 @@ void Game::setGoal(){
 	float x = rand() % 6 + 1.4;
 	float y = rand() % 6 + 1.4;
 	float z = rand() % 6 + 1.4;
+	x = 2.0f*x - 7.4;
+	z = 2.0f*z - 7.4;
 	
+	prevGoal = goalCoords;
 	goalCoords = glm::normalize(glm::vec3(x, y, z));
 
 }
@@ -65,7 +73,8 @@ btQuaternion Game::getGoalQuaternion(){
 	return btQuaternion(xyz.getX(), xyz.getY(), xyz.getZ(), w).normalize();
 }
 
-
-
+glm::vec3 Game::getPrevGoal() {
+	return prevGoal;
+}
 
 

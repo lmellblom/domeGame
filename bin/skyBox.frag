@@ -51,9 +51,9 @@ float stars(vec3 p)
 
 void main()
 {
-     float goal_radius = 0.2;
+     float goal_radius = 0.36;
      float prev_goal_radius = goal_radius;
-     float ball_radius = 0.15;
+     float ball_radius = 0.08;
      float interpolator = clamp(CurrTime - GoalTime,0.0,1.0);
      vec3 point_dir = normalize(pos);
      vec3 goal_dir = normalize(GoalVec);

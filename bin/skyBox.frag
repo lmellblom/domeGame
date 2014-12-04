@@ -66,7 +66,7 @@ void main()
     float goal_radius = 0.2;
     float prev_goal_radius = goal_radius;
     float ball_radius = 0.15;
-    float interpolator = clamp(CurrTime - GoalTime,0.0,1.0);
+    float interpolator = clamp(2.0*(CurrTime - GoalTime),0.0,1.0);
     vec3 point_dir = normalize(pos);
     vec3 goal_dir = normalize(GoalVec);
     vec3 ball_dir = normalize(BallVec);
@@ -77,10 +77,10 @@ void main()
     goal_radius *= interpolator;
     prev_goal_radius *= 1.0 - interpolator;
     vec3 point_dir_goal = mix(goal_dir, point_dir, 1.0-1.0/(goal_distance+1.0));
-    vec3 point_dir_prev = mix(prev_goal_dir, point_dir, smoothstep(0.0, 4.0*prev_goal_radius, goal_distance));
-    point_dir_goal.x += 0.005*CurrTime;
-    point_dir_prev.x += 0.005*CurrTime;
-    vec3 col = vec3( mix(stars(point_dir_prev)*smoothstep(0.0,prev_goal_radius,prev_distance), stars(point_dir_goal)*smoothstep(0.0,goal_radius,goal_distance), interpolator ) );
+    vec3 point_dir_prev = mix(prev_goal_dir, point_dir,  1.0-1.0/(prev_distance+1.0));
+    point_dir_goal = mix(point_dir_prev, point_dir_goal, interpolator);
+    float hole = mix(smoothstep(0.0,prev_goal_radius,prev_distance), smoothstep(0.0,goal_radius,goal_distance), interpolator);
+    vec3 col = vec3( stars(point_dir_goal)*hole );
 
 
     float ball_mask = 1.0 - smoothstep(ball_radius*0.2*(sin(2.0*CurrTime)+2.0), ball_radius, length(point_dir - ball_dir) );

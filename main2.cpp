@@ -1,9 +1,3 @@
-/*
-Copyright (c) 2014 Miroslav Andel IXEL AB
-miroslav.andel@ixel.se
-All rights reserved.
-*/
-
 #include "sgct.h"
 #include "Webserver.h"
 #include "UserData.h"
@@ -13,7 +7,7 @@ All rights reserved.
 
 #include <iostream>
 
-#define MAX_WEB_USERS 256
+#define MAX_WEB_USERS 20
 #define DOME_RADIUS 7.4f
 
 sgct::Engine * gEngine;
@@ -28,29 +22,12 @@ void myDecodeFun();
 void myCleanUpFun();
 void keyCallback(int key, int action);
 
-// rendering functions
-void loadTexturesAndStuff();
-void renderAvatars();
-void renderSkyBox();
-void renderConnectionInfo();
-void renderBalls();
-void renderFootball();
-void renderGoal();
-void simulateMaster(); 
+Simulation sim;
 
-// ping
-void ping(unsigned int id); // ping from user
-
-// for the webserver and userdata
-Webserver webserver;
-UserData webUsers[MAX_WEB_USERS];
-std::vector<UserData> webUsers_copy;
-
-tthread::mutex mWebMutex; //used for thread exclusive data access (prevent corruption)
-
-// shared variables
+//shared variables
 sgct::SharedFloat curr_time(0.0f);
 sgct::SharedFloat last_time(0.0f);
+
 sgct::SharedVector<UserData> sharedUserData;
 sgct::SharedObject<btQuaternion> sharedBallPos; // btQuartnions.. 
 sgct::SharedObject<btQuaternion> sharedGoalPos;
@@ -169,12 +146,17 @@ int main( int argc, char* argv[] )
 		return EXIT_FAILURE;
 	}
 
-	webUsers_copy.assign(webUsers, webUsers + MAX_WEB_USERS);
     if( gEngine->isMaster() )
     {
+
         webserver.setCallback(webDecoder);
         //webserver.start(9000);
         webserver.start(80);
+
+        //start server here
+		//start sim here?
+		//start game here?
+
     }
 
 	// Main loop
@@ -189,6 +171,7 @@ int main( int argc, char* argv[] )
 }
 
 void myInitFun() {
+
 	sim.AddBall(0); // add the ball in the simulation
 
 	// creates the quads
@@ -198,34 +181,18 @@ void myInitFun() {
 
 	game.setGoal(); // set a random goal at the start
 
-	loadTexturesAndStuff(); 
+
 }
 
 void myDrawFun()
 {
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
-    MVP = gEngine->getActiveModelViewProjectionMatrix();
 
-    renderSkyBox();
-	renderGoal();
-	renderAvatars();
-	renderFootball();
-
-	//game.update(sim.GetBallDirectionNonQuaternion(0));
-	// std::cout << "Balldirection: " << sim.GetBallDirectionNonQuaternion(0).x << " ; " << sim.GetBallDirectionNonQuaternion(0).y << " ; " << sim.GetBallDirectionNonQuaternion(0).z << std::endl;
-    //unbind shader program
-    sgct::ShaderManager::instance()->unBindShaderProgram();
-
-    glDisable(GL_BLEND);
 }
 
 
 void myPreSyncFun()
 {	
-	//set the time only on the master
-	if( gEngine->isMaster() )
+	if (gEngine->isMaster())
 	{
 		
 		//get the time in seconds
@@ -279,21 +246,20 @@ void simulateMaster() {
 
 }
 
+		curr_time.setVal(static_cast<float>(sgct::Engine::getTime()));
+		sim.Step(curr_time.getVal() - last_time.getVal());
+		last_time.setVal(curr_time.getVal());
+		glm::vec3 v = sim.GetBallDirVec();
+		std::cout << curr_time.getVal() << std::endl;
+		//std::cout << v.x << " " << v.y << " " << v.z << std::endl;
+	}
+}
+
+
+
 void myPostSyncFun()
 {
-	if (!gEngine->isMaster())
-	{
-		webUsers_copy = sharedUserData.getVal();
-	}
-    else
-    {
-        if(takeScreenShot)
-        {
-            gEngine->takeScreenshot();
-            takeScreenShot = false;
-        }
-    }
-    
+
 }
 
 
@@ -320,15 +286,12 @@ void myDecodeFun()
 
 void myCleanUpFun()
 {
-	avatar.clear();
-
-    if(myBox != NULL)
-        delete myBox;
 
 }
 
 void keyCallback(int key, int action)
 {
+
 	if( gEngine->isMaster() )
 	{
 		switch( key )
@@ -487,67 +450,4 @@ void ping(unsigned int id) {
     // only sets on master so no need to use the webCopy, also can use sim. 
     webUsers[id].setPingTime(static_cast<float>(sgct::Engine::getTime()));
     webUsers[id].setPingPosition(sim.GetPlayerDirectionNonQuaternion(id));
-
-}
-
-void loadTexturesAndStuff(){
-	    // load textures
-    sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
-	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-    sgct::TextureManager::instance()->loadTexure(avatarTex, "avatar", "avatar.png", true);
-	sgct::TextureManager::instance()->loadTexure(footballTex, "fotball", "football.png", true);
-
-    // add shaders
-	sgct::ShaderManager::instance()->addShaderProgram( "avatar",
-			"avatar.vert",
-			"avatar.frag" );
-	sgct::ShaderManager::instance()->bindShaderProgram( "avatar" );
-	
-	// avatar locs
-	Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "MVP" );
-    Color_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "FaceColor" );
-    Avatar_Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "Tex" );
-	Time_Loc = sgct::ShaderManager::instance()->getShaderProgram("avatar").getUniformLocation("PingTime");
-	Curr_Time = sgct::ShaderManager::instance()->getShaderProgram("avatar").getUniformLocation("CurrTime");
-	Team_Loc = sgct::ShaderManager::instance()->getShaderProgram("avatar").getUniformLocation("Team");
-
-	// fotball shader
-	sgct::ShaderManager::instance()->addShaderProgram("fotball",
-		"avatar.vert",
-		"FootballFragShader.frag");
-	sgct::ShaderManager::instance()->bindShaderProgram("fotball");
-	
-	Matrix_Loc_Football = sgct::ShaderManager::instance()->getShaderProgram("fotball").getUniformLocation("MVP");
-	Tex_Loc_Football = sgct::ShaderManager::instance()->getShaderProgram("fotball").getUniformLocation("Tex");
-
-	// goal shader
-	sgct::ShaderManager::instance()->addShaderProgram("goals",
-		"avatar.vert",
-		"goal.frag");
-	sgct::ShaderManager::instance()->bindShaderProgram("goals");
-
-	Matrix_Loc_Goal = sgct::ShaderManager::instance()->getShaderProgram("goals").getUniformLocation("MVP");
-	Team_Loc_Goal = sgct::ShaderManager::instance()->getShaderProgram("goals").getUniformLocation("Team");
-	Goal_Loc_Tex = sgct::ShaderManager::instance()->getShaderProgram("goals").getUniformLocation("Tex");
-
-    // for the skyBox
-    sgct::TextureManager::instance()->loadTexure(textureSkyBox, "skyBox", "sky.png", true);
-
-    // add the box
-    myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::SkyBox);
-
-    //Set up backface culling
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW); //our polygon winding is counter clockwise
- 
-    sgct::ShaderManager::instance()->addShaderProgram( "xform",
-            "SimpleVertexShader.vert",
-            "SimpleFragmentShader.frag" );
- 
-    sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
- 
-    Matrix_Loc_Box = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
-    Tex_Loc_Box = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "Tex" );
-
-    sgct::ShaderManager::instance()->unBindShaderProgram();
 }

@@ -27,16 +27,16 @@
         float g_i = smoothstep(0.0,1.0,interpolator);
         float goal_mask = 1.0 - smoothstep((goal_radius-0.001)*g_i, goal_radius*g_i, length(point_dir - goal_dir) );
         goal_mask = clamp(goal_mask,0.0,1.0);
-        vec3 goal_color = vec3(1.0,0.0,0.0);
+        vec3 goal_color = goal_dir;
         col = mix(col,goal_color,goal_mask);
 
         float p_i = 1.0 - smoothstep(0.0,1.0,interpolator);
         float prev_goal_mask = 1.0 - smoothstep((prev_goal_radius-0.001)*p_i, prev_goal_radius*p_i, length(point_dir - prev_goal_dir) );
         prev_goal_mask = clamp(prev_goal_mask,0.0,1.0);
-        col = mix(col,goal_color*0.5,prev_goal_mask);
+        col = mix(col,goal_color,prev_goal_mask);
 
         float ball_mask = 1.0 - smoothstep(ball_radius-0.001, ball_radius, length(point_dir - ball_dir) );
-    	vec3 ball_color = vec3(0.0,0.0,1.0);
+    	vec3 ball_color = ball_dir.yzx;
         col = mix(col,ball_color,ball_mask);
 
 

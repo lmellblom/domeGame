@@ -184,6 +184,11 @@
 
 		function showPos()
 		{	
+			// om variablerna inte är initierade redan. 
+			if (typeof canvas === 'undefined') {
+				init();
+			}
+
 			ctx.clearRect(0,0, canvas.width, canvas.height);
 			
 			if( connected == 1 )

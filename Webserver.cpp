@@ -101,7 +101,7 @@ static int nullHttp(
 			}
 
 			if (libwebsockets_serve_http_file(context, wsi, buf,
-				mimetype, NULL))
+				mimetype, NULL,0))
 				return -1; /* through completion or error, close the socket */
 		}
 	break;

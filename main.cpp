@@ -10,6 +10,7 @@ All rights reserved.
 #include "Quad.h"
 #include "Simulation.h"
 #include "Game.h"
+#include <math.h>
 
 #include <iostream>
 
@@ -430,17 +431,25 @@ void renderAvatars()
 			float currTime = curr_time.getVal();
 			int team = webUsers_copy[i].getTeam();
 
-			if (glm::all(glm::greaterThanEqual(glm::vec3(axis.getX(),axis.getY(),axis.getZ()), glm::vec3(0.0f,0.0f,0.0f))) && glm::all(glm::lessThanEqual(glm::vec3(axis.getX(),axis.getY(),axis.getZ()), glm::vec3(0.1f,0.1f,0.1f)))){
+			float x = axis.getX();
+			float y = axis.getY();
+			float z = axis.getZ();
 
-			//if (axis.getX() == 0 && axis.getY()==0 && axis.getZ()==0) {
-				// detta enbart för att det krashace på mac om detta gjordes med rotationen nedan.. hmm
+			if (glm::all(glm::greaterThanEqual(glm::vec3(x,y,z), glm::vec3(0.0f,0.0f,0.0f))) && glm::all(glm::lessThanEqual(glm::vec3(x,y,z), glm::vec3(0.1f,0.1f,0.1f)))){
+				// detta enbart för att det kraschade annars pga försökte göra rotation runt 0 typ..
+				//std::cout << x << ' ' << y << ' ' << z << '\n';
 			}
-			
+			else if (std::isnan(x) || std::isnan(y) || std::isnan(z)){
+				// ibland råkar det bli nan, abort!!!! nu kraschar iaf inte programmet. dock måste personen connecta om just nu..
+					std::cout << "not a number! \n" ; // lösa att den inte funkar att rita upp... 
+			}
 			else{
+				//std::cout << x << ' ' << y << ' ' << z << '\n';
+
 				// denna rotation kraschade förut innan if-satsen
 				glm::mat4 rot_mat = glm::rotate(glm::mat4(1.0f),
 					glm::degrees(angle),
-					glm::vec3(axis.getX(), axis.getY(), axis.getZ()));
+					glm::vec3(x,y,z));
 
 				glm::mat4 avatarMat = MVP * rot_mat * trans_mat;
 

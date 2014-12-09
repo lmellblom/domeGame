@@ -13,7 +13,7 @@ All rights reserved.
 
 #include <iostream>
 
-#define MAX_WEB_USERS 256
+#define MAX_WEB_USERS 64
 #define DOME_RADIUS 7.4f
 
 sgct::Engine * gEngine;
@@ -430,7 +430,9 @@ void renderAvatars()
 			float currTime = curr_time.getVal();
 			int team = webUsers_copy[i].getTeam();
 
-			if (axis.getX() == 0 && axis.getY()==0 && axis.getZ()==0) {
+			if (glm::all(glm::greaterThanEqual(glm::vec3(axis.getX(),axis.getY(),axis.getZ()), glm::vec3(0.0f,0.0f,0.0f))) && glm::all(glm::lessThanEqual(glm::vec3(axis.getX(),axis.getY(),axis.getZ()), glm::vec3(0.1f,0.1f,0.1f)))){
+
+			//if (axis.getX() == 0 && axis.getY()==0 && axis.getZ()==0) {
 				// detta enbart för att det krashace på mac om detta gjordes med rotationen nedan.. hmm
 			}
 			

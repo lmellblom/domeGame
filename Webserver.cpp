@@ -97,6 +97,8 @@ static int nullHttp(
 				lwsl_err("Unknown mimetype for %s\n", buf);
 				libwebsockets_return_http_status(context, wsi,
 					HTTP_STATUS_UNSUPPORTED_MEDIA_TYPE, NULL);
+
+            printf("blubb fel!!!!\n");
 				return -1;
 			}
 

@@ -13,7 +13,7 @@ All rights reserved.
 
 #include <iostream>
 
-#define MAX_WEB_USERS 256
+#define MAX_WEB_USERS 64
 #define DOME_RADIUS 7.4f
 
 sgct::Engine * gEngine;
@@ -222,6 +222,8 @@ void myDrawFun()
 	renderAvatars();
 	//renderFootball();
 
+	curr_time.setVal(static_cast<float>(sgct::Engine::getTime()));
+	std::cout << "FPS: " << (curr_time.getVal() - last_time.getVal()) << std::endl;
 	//std::cout << "Balldirection: " << sim.GetBallDirVec().x << " ; " << sim.GetBallDirVec().y << " ; " << sim.GetBallDirVec().z << std::endl;
 	//unbind shader program
 	sgct::ShaderManager::instance()->unBindShaderProgram();
@@ -373,9 +375,6 @@ void renderSkyBox()
 
 	sgct::ShaderManager::instance()->bindShaderProgram("xform");
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(textureSkyBox));
-
 	glUniformMatrix4fv(Matrix_Loc_Box, 1, GL_FALSE, &BoxMVP[0][0]);
 	glUniform1i(Tex_Loc_Box, 0);
 
@@ -416,8 +415,6 @@ void renderAvatars()
 	sgct::ShaderManager::instance()->bindShaderProgram("avatar");
 	avatar.bind();
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(avatarTex));
 
 	//should really look over the rendering, maybe use more threads??
 	for (unsigned int i = 1; i<MAX_WEB_USERS; i++)
@@ -467,9 +464,6 @@ void renderFootball() {
 	sgct::ShaderManager::instance()->bindShaderProgram("fotball");
 
 	football.bind();
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(footballTex));
 
 	btQuaternion quat = sharedBallPos.getVal();
 	//std::cout << sharedBallPos.getVal().getX() << " " << sim.GetBallDirection(0) << std::endl;
@@ -530,9 +524,7 @@ void loadTexturesAndStuff(){
 	// load textures
 	sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
 	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-	sgct::TextureManager::instance()->loadTexure(avatarTex, "avatar", "avatar.png", true);
-	sgct::TextureManager::instance()->loadTexure(footballTex, "fotball", "football.png", true);
-
+	
 	// add shaders
 	sgct::ShaderManager::instance()->addShaderProgram("avatar",
 		"avatar.vert",
@@ -565,9 +557,6 @@ void loadTexturesAndStuff(){
 	Matrix_Loc_Goal = sgct::ShaderManager::instance()->getShaderProgram("goals").getUniformLocation("MVP");
 	Team_Loc_Goal = sgct::ShaderManager::instance()->getShaderProgram("goals").getUniformLocation("Team");
 	Goal_Loc_Tex = sgct::ShaderManager::instance()->getShaderProgram("goals").getUniformLocation("Tex");
-
-	// for the skyBox
-	sgct::TextureManager::instance()->loadTexure(textureSkyBox, "skyBox", "sky.png", true);
 
 	// add the box
 	myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::SkyBox);

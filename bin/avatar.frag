@@ -1,6 +1,6 @@
 #version 330 core
 
-#define MAX_WEB_USERS 256
+#define MAX_WEB_USERS 64
 
 in vec2 uv;
 out vec4 color;

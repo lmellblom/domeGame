@@ -224,7 +224,7 @@ void myDrawFun()
 	//renderFootball();
 
 	curr_time.setVal(static_cast<float>(sgct::Engine::getTime()));
-	std::cout << "FPS: " << 1/(curr_time.getVal() - last_time.getVal()) << std::endl;
+	//std::cout << "FPS: " << 1/(curr_time.getVal() - last_time.getVal()) << std::endl;
 	//std::cout << "Balldirection: " << sim.GetBallDirVec().x << " ; " << sim.GetBallDirVec().y << " ; " << sim.GetBallDirVec().z << std::endl;
 	//unbind shader program
 	sgct::ShaderManager::instance()->unBindShaderProgram();

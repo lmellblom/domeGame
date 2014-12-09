@@ -18,7 +18,8 @@ void PlayerObject::Update(float dt) {
 	btVector3 direction = target_ - position;
 	float distance2 = direction.length2();
 	direction.normalize();
-	
+	std::cout << "t" << target_.length() << std::endl;
+	std::cout << "p" << position.length() << std::endl;
 	position.normalize();
 	btVector3 force_direction = direction - direction.dot(position) * position;
 	force_direction.normalize();
@@ -27,11 +28,11 @@ void PlayerObject::Update(float dt) {
 
 	float speed = body_->getLinearVelocity().length();
 
-	if (distance2 < 0.1){
-		body_->setLinearVelocity(btVector3(0.0,0.0,0.0));
+	if (distance2 < 5.0){
+		body_->setLinearVelocity((MAX_SPEED) * distance2/5.0 * force_direction);
 	}
 	else{
-		body_->setLinearVelocity((MAX_SPEED)* force_direction);
+		body_->setLinearVelocity((MAX_SPEED) * force_direction);
 	}
 }
 

@@ -70,10 +70,11 @@ void main()
      point_dir_prev.x += 0.005*CurrTime;
      vec3 col = vec3( mix(stars(point_dir_prev)*smoothstep(0.0,prev_goal_radius,prev_distance), stars(point_dir_goal)*smoothstep(0.0,goal_radius,goal_distance), interpolator ) );
 
-
      float ball_mask = 1.0 - smoothstep(ball_radius*0.2*(sin(2.0*CurrTime)+2.0), ball_radius, length(point_dir - ball_dir) );
 	 vec3 ball_color = vec3(1.0);
      col = mix(col,ball_color,ball_mask);
+
+     col += smoothstep((goal_radius/2)+0.01, (goal_radius/2)-0.01, goal_distance)*smoothstep((goal_radius/2)-0.01, (goal_radius/2)+0.01, goal_distance);
 
      color = vec4(col,1.0);//texture(Tex, UV.st);
   //color=vec4(1.0,0.0,0.0,1.0);

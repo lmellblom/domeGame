@@ -6,7 +6,7 @@
 #include "sgct.h"
 #include "PlayerObject.h"
 
-#define MAX_PLAYERS 256
+#define MAX_PLAYERS 64
 #define MAX_STUFF 10
 
 class Simulation {

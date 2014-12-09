@@ -12,7 +12,7 @@ PlayerObject::~PlayerObject()  {
 void PlayerObject::Update(float dt) {
 	
 	const float MAX_SPEED = 10.0;
-	const float FORCE = 10.0/dt;
+	const float FORCE = 0.0;
 	
 	btVector3 position = body_->getWorldTransform().getOrigin();
 	btVector3 direction = target_ - position;

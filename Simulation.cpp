@@ -39,7 +39,7 @@ Simulation::~Simulation()  {
 	delete ground_rigid_body_;
 	delete ground_shape_;
 
-	for (int i = 0; i < MAX_PLAYERS; i++)
+	for (int i = 1; i < MAX_PLAYERS; i++)
 		if (player_list_[i] != NULL) {
 			delete player_list_[i];
 		}
@@ -58,7 +58,7 @@ Simulation::~Simulation()  {
 void Simulation::Step(float dt) {
 	dynamics_world_->stepSimulation(dt, 5, 1.0/60.0);
 
-	for (int i = 0; i < MAX_PLAYERS; i++)
+	for (int i = 1; i < MAX_PLAYERS; i++)
 		if (player_list_[i] != NULL) {
 		player_list_[i]->Update(dt); //update player movement
 		}

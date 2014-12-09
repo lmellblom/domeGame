@@ -36,7 +36,7 @@ private:
 	btDefaultMotionState* ground_motion_state_;
 	btRigidBody* ground_rigid_body_;
 
-	PlayerObject* player_list_[MAX_OBJECTS];
+	PlayerObject* player_list_[MAX_PLAYERS];
 	Ball* ball;
 };
 

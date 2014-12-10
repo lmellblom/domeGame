@@ -59,6 +59,8 @@ sgct::SharedObject<glm::vec3> sharedBallVec;
 sgct::SharedObject<glm::vec3> sharedGoalVec;
 sgct::SharedObject<glm::vec3> sharedPrevGoalVec;
 
+sgct::SharedInt style_index(1);
+
 bool takeScreenShot = false;
 glm::mat4 MVP;
 
@@ -91,6 +93,7 @@ GLint Ball_Vec_Loc = -1;
 GLint Prev_Goal_Vec_Loc = -1;
 GLint CurrTime_Loc = -1;
 GLint GoalTime_Loc = -1;
+GLint Style_Index_Loc = -1;
 
 //float pingedTime[MAX_WEB_USERS];				lagt enskild i userdata istället!
 //glm::vec3 pingedPosition[MAX_WEB_USERS];		lagt enskild i userdata istället!	
@@ -122,6 +125,7 @@ void webDecoder(const char * msg, size_t len)
 			webUsers[id].setTeam(id); // sets the team depending on the id
 
 			btVector3 pos = webUsers[id].calculatePosition();
+			//std::cout << pos.getX() << std::endl;
 			//calculate position vector
 			sim.SetPlayerTarget(id, pos); // creates a new player if it doesnt exist, else set target position
 			webUsers[id].exists = true;
@@ -318,6 +322,8 @@ void myEncodeFun()
 	sgct::SharedData::instance()->writeFloat(&goal_time);
 	sgct::SharedData::instance()->writeObj(&sharedPrevGoalVec);
 
+	sgct::SharedData::instance()->writeInt(&style_index);
+
 
 }
 
@@ -332,6 +338,8 @@ void myDecodeFun()
 
 	sgct::SharedData::instance()->readFloat(&goal_time);
 	sgct::SharedData::instance()->readObj(&sharedPrevGoalVec);
+
+	sgct::SharedData::instance()->readInt(&style_index);
 
 }
 
@@ -354,6 +362,18 @@ void keyCallback(int key, int action)
 		case SGCT_KEY_F10:
 			if (action == SGCT_PRESS)
 				takeScreenShot = true;
+			break;
+		case SGCT_KEY_1:
+			style_index.setVal(1);
+			break;
+		case SGCT_KEY_2:
+			style_index.setVal(2);
+			break;
+		case SGCT_KEY_3:
+			style_index.setVal(3);
+			break;
+		case SGCT_KEY_4:
+			style_index.setVal(4);
 			break;
 		}
 	}
@@ -390,6 +410,7 @@ void renderSkyBox()
 	glUniform3f(Prev_Goal_Vec_Loc, v.x, v.y, v.z);
 	glUniform1f(CurrTime_Loc, curr_time.getVal());
 	glUniform1f(GoalTime_Loc, goal_time.getVal());
+	glUniform1i(Style_Index_Loc, style_index.getVal());
 
 	//draw the box (to make the texture on inside)
 	glFrontFace(GL_CW);
@@ -438,7 +459,7 @@ void renderAvatars()
 			}
 			else if (std::isnan(x) || std::isnan(y) || std::isnan(z)){
 				// ibland råkar det bli nan, abort!!!! nu kraschar iaf inte programmet. dock måste personen connecta om just nu..
-					std::cout << "not a number! \n" ; // lösa att den inte funkar att rita upp... 
+					//std::cout << "not a number! \n" ; // lösa att den inte funkar att rita upp... 
 			}
 			else{
 				//std::cout << x << ' ' << y << ' ' << z << '\n';
@@ -590,6 +611,7 @@ void loadTexturesAndStuff(){
 	CurrTime_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("CurrTime");
 	GoalTime_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("GoalTime");
 	Ball_Vec_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("BallVec");
+	Style_Index_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("StyleIndex");
 
 	sgct::ShaderManager::instance()->unBindShaderProgram();
 }
